@@ -1,7 +1,7 @@
-import {Medico} from "./classes.js";
-import {Paciente} from "./classes.js";
-import {Turno} from "./classes.js";
-
+import {Medico} from "./src/models/Medico.js";
+import {Paciente} from "./src/models/Paciente.js";
+import {Turno} from "./src/models/Turno.js";
+import { Especialidad } from './src/models/especialidad.js';
 //PRUEBAS
 
 //crear medico

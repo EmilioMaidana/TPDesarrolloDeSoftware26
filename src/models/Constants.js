@@ -8,7 +8,7 @@ export const EstadoTurno = Object.freeze({
 
 export const NivelCobertura = Object.freeze({
     TOTAL: "TOTAL",
-    PACIAL: "PARCIAL",
+    PARCIAL: "PARCIAL",
     NO_CUBIERTA : "NO_CUBIERTA"
 });
 

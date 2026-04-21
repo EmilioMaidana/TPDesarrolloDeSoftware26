@@ -21,3 +21,11 @@ app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
     console.log(`Health check disponible en http://localhost:${PORT}/health`);
 });
+
+/*
+
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+*/
