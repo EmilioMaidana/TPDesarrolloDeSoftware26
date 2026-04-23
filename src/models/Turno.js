@@ -27,17 +27,12 @@ class Turno{
         this.historialEstados.push(cambio);
     }
     
-    /*calcularCosto() {
-        const cobertura = this.paciente.plan.obtenerCoberturaPorPractica(this.practica); //falta hacer esa funcion
-
-        if (!cobertura) return this.practica.costo;
-
-        if (cobertura.nivelCobertura === "TOTAL") return 0;
-
-        if (cobertura.nivelCobertura === "PARCIAL") {
-            return this.practica.costo * 0.5; // ejemplo
+    notificacionPorFecha(){
+        const fechaActual = new Date()
+        const fechaRegistrada = fechaHora.setDate(fechaHora.getDate() - 1);
+        if(fechaActual === fechaRegistrada){
+            this.medico.usuario.confirmarTurno(this);
+            this.paciente.usuario.confirmarTurno(this);
         }
-
-        return this.practica.costo;
-    }*/
+    }
 }
