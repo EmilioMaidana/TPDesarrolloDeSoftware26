@@ -93,13 +93,13 @@ describe("Pruebas de FactoryNotification", () => {
     })
 
     test("El día previo al turno, se envía un recordatorio tanto al paciente como al médico.",()=>{const factory = new FactoryNotification();
-        const notificacioncrearSegunFecha = factory.crearSegunFecha(turnoPrueba2);
+        const notificacioncrearSegunFecha = factory.crearSegunFecha(turnoFechaPosterior);
 
         expect(notificacioncrearSegunFecha).not.toBeNull()
 
-        expect(notificacioncrearSegunFecha.mensaje).toBe(` ${turno.getPacienteTurno()} recorda que mañana tenes un turno con el medico${turno.getMedicoTurno()}`)
-        expect(notificacioncrearSegunFecha.getDestinatario()).toBe(turnoPrueba2.getPacienteTurno())
-        expect(notificacioncrearSegunFecha.getRemitente()).toBe(turnoPrueba2.getMedicoTurno())
+        expect(notificacioncrearSegunFecha.mensaje).toBe(`${turnoFechaPosterior.getPacienteTurno()} recorda que mañana tenes un turno con el medico${turnoFechaPosterior.getMedicoTurno()}`)
+        expect(notificacioncrearSegunFecha.getDestinatario()).toBe(turnoFechaPosterior.getPacienteTurno())
+        expect(notificacioncrearSegunFecha.getRemitente()).toBe(turnoFechaPosterior.getMedicoTurno())
     })
 
 });

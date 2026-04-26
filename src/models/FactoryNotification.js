@@ -1,5 +1,5 @@
 import { Notificacion } from "./Notificacion.js";
-
+import { Turno } from "./Turno.js";
 
 export class FactoryNotification{ 
     crearSegunEstadoTurno(turno){
@@ -31,33 +31,15 @@ export class FactoryNotification{
     //El día previo al turno, se envía un recordatorio tanto al paciente como al médico.
     
     crearSegunFecha(turno){
-        const fechaActual = new Date()
+        const fechaActual = new Date();
         const fechaDelTurno = turno.getFechaTurno();
-        const fechaAnteriorAlTurno = fechaDelTurno.setDate(fechaDelTurno.getDate() - 1);
-        if( (fechaActual.getDate()) === (fechaAnteriorAlTurno.getDate())){
+        
+        const fechaAnteriorAlTurno = new Date(fechaDelTurno);
+        fechaAnteriorAlTurno.setDate(fechaAnteriorAlTurno.getDate() - 1);
+    
+        if( (fechaActual.toDateString()) === (fechaAnteriorAlTurno.toDateString())){
 
-            return new Notificacion(turno.getMedicoTurno(),turno.getPacienteTurno(),` ${turno.getPacienteTurno()} recorda que mañana tenes un turno con el medico${turno.getMedicoTurno()}`,new Date(),null,false);
-        }else{
-            console.log("ACA ESTA EL PROBLEMA");
+            return new Notificacion(turno.getMedicoTurno(),turno.getPacienteTurno(),`${turno.getPacienteTurno()} recorda que mañana tenes un turno con el medico${turno.getMedicoTurno()}`,new Date(),null,false);
         }
     }
-
-    /*
-    const mañana = new Date(turno.getFechaTurno());
-    mañana.setDate(mañana.getDate() - 1);
-
-    if (fechaActual.toDateString() === mañana.toDateString()) {
-        return new Notificacion(2,turno.paciente,turno.medico,`se reservo un turno ${turno.paciente.nomrbre}`,new Date(),null,false)
-    }
-    */
-
-    /*
-    notificacionPorFecha(){
-        const fechaActual = new Date()
-        const fechaRegistrada = fechaHora.setDate(fechaHora.getDate() - 1);
-        if(fechaActual === fechaRegistrada){
-            this.medico.usuario.confirmarTurno(this);
-            this.paciente.usuario.confirmarTurno(this);
-        }
-    }*/
 }
