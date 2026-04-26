@@ -8,7 +8,7 @@ export class Agenda {
         //    turnos = medico.identificarTurnos();
         //}
         //verificar en base a la disponibilidadHoraria que turnos puede asignar
-
+        
         console.log(`Generando turnos de ${especialidad} para el Dr. ${medico.nombre}` + turnos + "...");
         // Aqui iria tu logica de creacion (fechas, horarios, etc.)
         

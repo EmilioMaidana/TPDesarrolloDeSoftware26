@@ -1,4 +1,4 @@
-class Notificacion{
+export class Notificacion{
     constructor(id, remitente, destinatario,mensaje, fechaHoraCreacion, fechaHoraLeida,leida){
         this.id = id;
         this.remitente = remitente;
