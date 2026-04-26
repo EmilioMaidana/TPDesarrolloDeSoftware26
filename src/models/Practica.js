@@ -6,4 +6,5 @@ export class Practica{
         this.costo = costo;
     }
 
+    getNombre(){return this.nombre}
 }

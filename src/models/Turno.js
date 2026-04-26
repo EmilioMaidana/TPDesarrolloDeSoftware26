@@ -1,18 +1,25 @@
-import CambioEstadoTurno from './CambioEstadoTurno.js'
+import { CambioEstadoTurno } from './CambioEstadoTurno.js'
+import { Especialidad } from "./especialidad.js";
+import { Practica } from "./Practica.js";
 
 export class Turno{
-    constructor(/*id,*/medico,paciente,fechaHora,sede,practica,estado,historialEstados,costo){
-       // this.id = id;
+    constructor(medico,paciente,fechaHora,sede,servicio,estado,historialEstados,costo){
         this.medico = medico;
         this.paciente = paciente;
         this.fechaHora = fechaHora;
         this.sede = sede;
-        this.practica = practica;
+        this.servicio = servicio;
         this.estado = estado;
         this.historialEstados = historialEstados;
         this.costo = costo;
     }
-    
+
+    getEstadoTurno(){return this.estado}
+    getMedicoTurno(){return this.medico}
+    getPacienteTurno(){return this.paciente}
+    getFechaTurno(){return this.fechaHora}
+    getServicio(){return this.servicio}
+
     actualizarEstado(nuevoEstado, usuario, motivo) {
         this.estado = nuevoEstado;
 
@@ -25,6 +32,18 @@ export class Turno{
         );
 
         this.historialEstados.push(cambio);
+    }
+
+    getTipoTurno(){
+        if((this.servicio) instanceof Especialidad){
+            return "turno tipo especialidad";
+        }
+        if((this.servicio) instanceof Practica){
+            return "turno tipo practica";
+        }else{
+            return "El tipo del turno no se especifico correctamente";
+        }
+            
     }
     
     /*calcularCosto() {

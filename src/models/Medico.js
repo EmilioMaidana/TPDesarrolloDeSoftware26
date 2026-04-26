@@ -1,9 +1,9 @@
 import {Turno} from './Turno.js'
 import {Agenda} from './Agenda.js'
 
+
 export class Medico{
-    constructor(id,usuario,matricula,nombre,especialidades = [],practicas = [],sedes = [],disponibilidades = []){    
-        this.id = id;
+    constructor(usuario,matricula,nombre,especialidades = [],practicas = [],sedes = [],disponibilidades = []){    
         this.usuario = usuario;
         this.matricula = matricula;
         this.nombre = nombre;

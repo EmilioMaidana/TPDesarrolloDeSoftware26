@@ -1,8 +1,9 @@
 export class Especialidad {
-    constructor(id, nombre, duracionTurno, costoConsulta) {
-        this.id = id;
+    constructor(nombre, duracionTurno, costoConsulta) {
         this.nombre = nombre;
         this.duracionTurnoEnMin = duracionTurno;
         this.costoConsulta = costoConsulta;
     }
+
+    getNombre(){return this.nombre}
 }
