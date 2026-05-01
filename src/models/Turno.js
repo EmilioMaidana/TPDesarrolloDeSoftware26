@@ -14,12 +14,6 @@ export class Turno{
         this.costo = costo;
     }
 
-    getEstadoTurno(){return this.estado}
-    getMedicoTurno(){return this.medico}
-    getPacienteTurno(){return this.paciente}
-    getFechaTurno(){return this.fechaHora}
-    getServicio(){return this.servicio}
-
     actualizarEstado(nuevoEstado, usuario, motivo) {
         this.estado = nuevoEstado;
 
@@ -34,6 +28,7 @@ export class Turno{
         this.historialEstados.push(cambio);
     }
 
+    /*
     getTipoTurno(){
         if((this.servicio) instanceof Especialidad){
             return "turno tipo especialidad";
@@ -45,6 +40,7 @@ export class Turno{
         }
             
     }
+    */
     
     /*calcularCosto() {
         const cobertura = this.paciente.plan.obtenerCoberturaPorPractica(this.practica); //falta hacer esa funcion

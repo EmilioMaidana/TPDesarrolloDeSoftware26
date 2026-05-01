@@ -5,5 +5,4 @@ export class Especialidad {
         this.costoConsulta = costoConsulta;
     }
 
-    getNombre(){return this.nombre}
 }

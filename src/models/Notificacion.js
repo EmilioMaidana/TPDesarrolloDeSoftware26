@@ -3,14 +3,10 @@
             this.remitente = remitente;
             this.destinatario = destinatario;
             this.mensaje = mensaje;
-            this.fechaHoraCreacion = fechaHoraCreacion;
-            this.fechaHoraLeida = fechaHoraLeida;
-            this.leida = leida;
+            this.fechaHoraCreacion = new Date();
+            this.fechaHoraLeida = null;
+            this.leida = false;
         }
-
-        getRemitente(){ return this.remitente}
-        getDestinatario(){ return this.destinatario}
-        getMensaje(){return this.mensaje}
 
         marcarComoLeida(){
             if (this.leida) {

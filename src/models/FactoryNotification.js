@@ -3,43 +3,49 @@ import { Turno } from "./Turno.js";
 
 export class FactoryNotification{ 
     crearSegunEstadoTurno(turno){
-        return new Notificacion(turno.getPacienteTurno(),turno.getMedicoTurno(),`Su turno fue ${turno.getEstadoTurno()}`,new Date(),null,false);
+        return new Notificacion(turno.paciente, turno.medico,`Su turno fue ${turno.estado}`);
     }
     
     //Al reservar un turno, se notifica al médico indicando paciente y servicio solicitado (especialidad o práctica).
     
     crearSegunTurnoReservado(turno){
-        return new Notificacion(turno.getPacienteTurno(),turno.getMedicoTurno(),`Tenes un turno por aceptar con el paciente ${turno.getPacienteTurno()} de ${turno.getServicio().getNombre()}`,new Date(),null,false);
+        return new Notificacion(turno.paciente, turno.medico,`Tenes un turno por aceptar con el paciente ${turno.paciente} de ${turno.servicio.nombre}`);
     }
 
     //Al aceptar un turno, se notifica al paciente.
 
     crearSegunAceptacion(turno){
-        return new Notificacion(turno.getMedicoTurno(),turno.getPacienteTurno(),`Tu turno de ${turno.getTipoServicio()} ${turno.getServicio().getNombre()} ha sido ${turno.getEstadoTurno()} por el medico ${turno.getMedicoTurno()}`,new Date(),null,false);
+        return new Notificacion(turno.medico, turno.paciente, `Tu turno de ${turno.servicio.nombre} ha sido ${turno.estado} por el medico ${turno.medico}`);
     }
     
     //Ante cancelaciones de turnos, se notifica a la contraparte correspondiente.
     
     crearSegunCancelacionMedico(turno){
-        return new Notificacion(turno.getMedicoTurno(),turno.getPacienteTurno(),`Su turno de ${turno.getServicio().getNombre()} fue ${turno.getEstadoTurno()} por el medico ${turno.getMedicoTurno()}`,new Date(),null,false);
+        return new Notificacion(turno.medico, turno.paciente,`Su turno de ${turno.servicio.nombre} fue ${turno.estado} por el medico ${turno.medico}`);
     }
 
     crearSegunCancelacionPaciente(turno){
-        return new Notificacion(turno.getPacienteTurno(),turno.getMedicoTurno(),`El paciente ${turno.getPacienteTurno()} cancelo su turno de ${turno.getServicio().getNombre()}`,new Date(),null,false);
+        return new Notificacion(turno.paciente, turno.medico,`El paciente ${turno.paciente} cancelo su turno de ${turno.servicio.nombre}`);
     }
     
     //El día previo al turno, se envía un recordatorio tanto al paciente como al médico.
     
-    crearSegunFecha(turno){
-        const fechaActual = new Date();
+    crearRecordatorioMedico(turno){
+       return new Notificacion("sistema", turno.paciente,`${turno.paciente} recorda que mañana tenes un turno con el medico${turno.medico}`);  
+    }
+
+    crearRecordatorioPaciente(turno){
+       return new Notificacion("sistema", turno.medico,`${turno.medico} recorda que mañana tenes un turno con el paciente${turno.paciente}`);  
+    }
+
+    /*
+    const fechaActual = new Date();
         const fechaDelTurno = turno.getFechaTurno();
         
         const fechaAnteriorAlTurno = new Date(fechaDelTurno);
         fechaAnteriorAlTurno.setDate(fechaAnteriorAlTurno.getDate() - 1);
     
         if( (fechaActual.toDateString()) === (fechaAnteriorAlTurno.toDateString())){
-
-            return new Notificacion(turno.getMedicoTurno(),turno.getPacienteTurno(),`${turno.getPacienteTurno()} recorda que mañana tenes un turno con el medico${turno.getMedicoTurno()}`,new Date(),null,false);
         }
-    }
+    */
 }
