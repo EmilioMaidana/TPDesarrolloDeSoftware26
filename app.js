@@ -36,4 +36,66 @@ app.get("/health", (req, res) => {
 
 */
 
+app.post('/api/turnos', (req, res) => {
+    try {
+        //const body = req.body;
+        const { 
+            medicoId, 
+            pacienteId, 
+            fechaHora, 
+            sedeId, 
+            servicio,
+            estado = "RESERVADO" 
+        } = req.body;
+        
+        const result = productSchema.safeParse(body);
+        if (result.error) {
+            res.status(400);
+            res.json(result.error.issues);
+        }
+        
+        const medico = buscarMedicoPorId(medicoId);
+        const paciente = buscarPacientePorId(pacienteId);
+
+         if (medico === NULL || paciente === NULL) {
+            return res.status(404).json({
+                success: false,
+                message: 'Médico o paciente no encontrado'
+            });
+        }
+        
+        // Crear turno
+        const nuevoTurno = new Turno(
+            medico,
+            paciente,
+            fechaHora,
+            sedeId,
+            servicio,
+            estado,
+            [],
+            calcularCosto(servicio, medico, paciente)
+        );
+        
+        res.status(201).json({
+            success: true,
+            message: 'Turno creado exitosamente',
+            data: nuevoTurno
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error al crear el turno',
+            error: error.message
+        });
+    }
+});
+
+function buscarMedicoPorId(id) {
+    return listaDeMedicos.find(m => m.id === id);
+}
+
+function buscarPacientePorId(id) {
+    return listaDePacientes.find(p => p.id === id);
+}
+
 export default app
