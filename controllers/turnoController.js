@@ -42,7 +42,7 @@ export class TurnoController {
             return next(error)
         }
     }
-
+    /*
     findById = async (req, res, next) => {
         try {
             const id = this.parsearId(req.params.id)
@@ -52,7 +52,7 @@ export class TurnoController {
         } catch (error) {
             return next(error)
         }
-    }
+    }*/
 
     update = async (req, res, next) => {
         try {
@@ -76,14 +76,14 @@ export class TurnoController {
             return next(error)
         }
     }
-
+    /*
     parsearId(idParam) {
         const id = Number(idParam)
 
         this.validarEnteroPositivo(id, "id")
 
         return id
-    }
+    }*/
 
     extraerYValidarBodyTurno(body) {
         if (!body || typeof body !== "object" || Array.isArray(body)) {

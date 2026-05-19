@@ -37,7 +37,7 @@ export class TurnoService {
             totalTurnos
         }
     }
-
+    /*
     obtenerPorId(id) {
         this.validarEnteroPositivo(id, "Id")
 
@@ -48,7 +48,7 @@ export class TurnoService {
         }
 
         return turnos
-    }
+    }*/
 
     crear(datosTurno) {
         this.validarDatosTurno(datosTurno)

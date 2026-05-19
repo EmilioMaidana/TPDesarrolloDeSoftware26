@@ -50,7 +50,7 @@ export class TurnoRepository {
 
         return turno
     }
-
+    /*
     obtenerPorId(id, { incluirEliminados = false } = {}) {
         this.validarId(id)
 
@@ -65,7 +65,7 @@ export class TurnoRepository {
         }
 
         return turno
-    }
+    }*/
 
     obtenerPorNombre(nombre, { incluirEliminados = false } = {}) {
         this.validarNombre(nombre)
