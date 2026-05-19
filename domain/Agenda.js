@@ -1,18 +1,51 @@
 export class Agenda {
     // Metodo 1: Especifico para especialidades
-    generarTurnosPorEspecialidad(especialidad, medico) {
-        let turnos;
+    let turnosExistentes = [];
 
-        //validar si el medico posee dicha especialidad
-        //if(medico.verificarEspecialidad(especialidad)){
-        //    turnos = medico.identificarTurnos();
-        //}
-        //verificar en base a la disponibilidadHoraria que turnos puede asignar
-        
-        console.log(`Generando turnos de ${especialidad} para el Dr. ${medico.nombre}` + turnos + "...");
-        // Aqui iria tu logica de creacion (fechas, horarios, etc.)
+    generarTurnosPorEspecialidad(servicio, medico) {
+    return medico.disponibilidad.flatMap(disponibilidad => generarSlotsPorRango(disponibilidad.horaDesde,disponibilidad.horaHasta,servicio.duracion).map(({ inicio }) => new Turno(
+            medico, 
+            null, 
+            inicio, 
+            null, 
+            servicio, 
+            EstadoTurno.DISPONIBLE, 
+            null, 
+            500, 
+            null
+        ))
+    );
+    }
+    
+    generarTurnosPorEspecialidad(servicio, medico) {
+        let turnos = [];
         
 
+        for (let disponibilidad of medico.disponibilidad){
+            const slotsTurnosDisponible = generarSlotsPorRango(
+                disponibilidad.horaDesde,
+                disponibilidad.horaHasta,
+                servicio.duracion //Revisar DC
+            )
+            // Por Dia Semana
+            for (let { inicio, fin } of slotsTurnosDisponible) {
+            
+                // Creamos la instancia pasándole 'inicio' (que va a valer '08:00', '08:30', etc.)
+                const turno = new Turno(
+                    medico, 
+                    null, 
+                    inicio, 
+                    null, 
+                    servicio, 
+                    EstadoTurno.DISPONIBLE, 
+                    null, 
+                    500, 
+                    null
+                );
+            
+                turnos.push(turno);
+            }
+       }
         return turnos;
     }
 
@@ -28,9 +61,27 @@ export class Agenda {
         // Aqui iria tu logica de creacion
     }
     // Metodo 3: Refrescar disponibilidad
-    refrescarTurnosSegunDisponibilidadDe(medico) {
-        let turnos;
-        turnos = medico.identificarTurnos();
+    refrescarTurnosSegunDisponibilidadDe(unMedico) {
+        const hoy = new Date();
+        
+
+        const eliminarTurnos = turnosExistentes.filter(turno =>
+            turno.medico.id === unMedico.id && turno.EstadoTurno === 'DISPONIBLE' && turno.fechaHora > hoy)
+
+        // esto incluye turnos pasados + reservados futuros
+        const conservarTurnos = turnosExistentes.filter(turno => !eliminarTurnos.includes(turno))
+
+        // Problema: como generar turnos sin superposicion de horarios
+        const nuevosTurnos = [...this.generarTurnosPorEspecialidad(servicio, unMedico)];
+
+
+        return {
+            eliminar: eliminarTurnos,
+            conservar: conservarTurnos
+            nuevos: nuevosTurnos
+        }
+
+       // turnos = medico.identificarTurnos();
         console.log(`Actualizando la agenda segun la disponibilidad del Dr. ${medico.nombre}` + turnos + "...");
         // Logica para revisar los horarios del medico y habilitar/deshabilitar turnos
     }
@@ -62,7 +113,7 @@ export class Agenda {
 
 /*Genera el array de turnos posibles basados en un rango y una duración*/
 
-/*
+
     generarSlotsPorRango = (inicioStr, finStr, duracion) => {
     const slots = [];
     let tiempoActual = horaAMinutos(inicioStr);
@@ -79,7 +130,7 @@ export class Agenda {
     return slots;
     };
 
-
+/*
     enbaseaslotsgenerados(){
         const turnosGenerados = this.generarSlotsPorRango(this.horaDesde, this.horaHasta, this.duracionTurno);
         return turnosGenerados;

@@ -3,7 +3,7 @@ import { Especialidad } from "./especialidad.js";
 import { Practica } from "./Practica.js";
 
 export class Turno{
-    constructor(medico,paciente,fechaHora,sede,servicio,estado,historialEstados,costo,id){
+    constructor(medico,paciente,fechaHora,sede,servicio,estado,historialEstados = [],costo){
         this.medico = medico;
         this.paciente = paciente;
         this.fechaHora = fechaHora;
@@ -12,7 +12,6 @@ export class Turno{
         this.estado = estado;
         this.historialEstados = historialEstados;
         this.costo = costo;
-        this.id = id;
     }
 
     actualizarEstado(nuevoEstado, usuario, motivo) {

@@ -1,43 +1,67 @@
 import mongoose from "mongoose";
 
+import { Paciente as PacienteClass } from "../models/entities/paciente.js";
+
 const pacienteSchema = new mongoose.Schema({
 
-  usuario: {
+  dni: {
     type: String,
-    required: true
+    required: true,
+    unique: true,
+    trim: true,
   },
 
   nombre: {
     type: String,
-    required: true
-  },
-
-  dni: {
-    type: Number,
     required: true,
-    unique: true
+    trim: true,
   },
 
   obraSocial: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ObraSocial",             //por referencia ya que muchos pacientes pueden tener la misma obra social
+    required: true,
   },
 
   plan: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Plan",
+    required: true,
   },
 
-  turnosRealizados: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Turno"
-  }]
+  // SOFT DELETE
+  eliminado: {
+    type: Boolean,
+    default: false,
+  }
 
-}, {
-  timestamps: true
+},
+{
+  timestamps: true,
+  collection: "pacientes",
 });
 
-export const Paciente = mongoose.model(
+
+// Cargar lógica de dominio
+pacienteSchema.loadClass(PacienteClass);
+
+
+// Opcional: ocultar __v
+pacienteSchema.set("toJSON", {
+  versionKey: false,
+});
+
+
+export const PacienteModel = mongoose.model(
   "Paciente",
   pacienteSchema
 );
+
+//asi se crearia un nuevo paciente
+/*
+const paciente1 = new Paciente({
+  nombre: "Juan"
+});
+
+await paciente1.save();
+*/

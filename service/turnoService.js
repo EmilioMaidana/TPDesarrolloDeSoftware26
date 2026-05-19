@@ -16,6 +16,11 @@ export class TurnoService {
         this.turnoRepository = turnoRepository;
     }
 
+    //Para consultar el historial de turnos de un paciente
+    async consultarHistorialPaciente(idPaciente) {
+        return turnoRepository.buscarPorPaciente(idPaciente);
+    }
+
     obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
         this.validarPaginacion(numeroPagina, limitePorPagina)
         // arreglar la validacion de filtros

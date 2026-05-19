@@ -12,9 +12,8 @@ router.route('/turnos')
 	.post((req, res, next) => turnoController.create(req, res, next))
 
 
-	/*
-	
-	router.route('/disponibles')
+/*
+router.route('/disponibilidades')
 	.get((req, res, next) => turnoController.findAll(req, res, next))
 	.post((req, res, next) => turnoController.create(req, res, next))
 	

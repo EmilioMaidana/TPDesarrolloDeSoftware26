@@ -1,15 +1,22 @@
 import { Turno } from "../domain/Turno.js"
-import { Constants } from "../domain/Constants.js"
+import { Constants } from "../domain/Enums.js"
 import {
     BadRequestError,
     NotFoundError,
     UnprocessableEntityError
 } from "../errors/AppError.js"
 
+
+
 export class TurnoRepository {
     constructor() {
         this.turno = {}
         this.nextId = 1
+    }
+
+    //Para consultar el historial de turnos de un paciente
+    async buscarPorPaciente(pacienteId) {
+        return TurnoModel.find({pacienteId});
     }
 
     obtenerTodos() {

@@ -1,6 +1,4 @@
-import {
-    BadRequestError,
-} from "../errors/AppError.js"
+import { BadRequestError,} from "../errors/AppError.js"
 import { ProductoService } from "../services/ProductoService.js";
 
 export class TurnoController {
@@ -8,6 +6,13 @@ export class TurnoController {
         turnoService = new TurnoService()
     } = {}) {
         this.turnoService = turnoService;
+    }
+
+    //Para consultar el historial de turnos de un paciente
+    async historial(req, res) {
+
+        const turnos = await turnoService.consultarHistorialPaciente(req.params.id);
+        res.json(turnos);
     }
 
 
@@ -118,25 +123,32 @@ export class TurnoController {
 
     extraerFiltros(query) {
         const filtros = {}
-        /*
+
         if (query.medico !== undefined) {
-            const medico = Object(query.medico)
-            if (!Number.isFinite(precioMin)) {
-                throw new BadRequestError("precioMin debe ser un número válido")
+            if (!Object.isFinite(medico)) {
+                throw new BadRequestError("el medico debe existir")
             }
-            filtros.precioMin = precioMin
+            filtros.medico = query.medico
+        }
+
+        if (query.horaDesde !== undefined) {
+            const regexHora = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
+            if (!regexHora.test(query.horaDesde)) {
+                throw new BadRequestError("La hora de inicio debe tener formato HH:MM")
+            }
+            filtros.horaDesde = query.horaDesde
         }
         
-        if (query.precioMax !== undefined) {
-            const precioMax = Number(query.precioMax)
-            if (!Number.isFinite(precioMax)) {
-                throw new BadRequestError("precioMax debe ser un número válido")
-            }
-            filtros.precioMax = precioMax
-        }*/
+        if (query.horaHasta !== undefined) {
+        const regexHora = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
+        if (!regexHora.test(query.horaHasta)) {
+            throw new BadRequestError("La hora de fin debe tener formato HH:MM")
+        }
+        filtros.horaHasta = query.horaHasta
+    }
 
-        if (query.categoria !== undefined) {
-            filtros.categoria = query.categoria
+        if (query.especialidad !== undefined) {
+            filtros.especialidad = query.especialidad
         }
 
         return filtros

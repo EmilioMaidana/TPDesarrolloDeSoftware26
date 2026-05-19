@@ -12,95 +12,24 @@ export class Medico{
         this.sedes = sedes;
         this.disponibilidades = disponibilidades;
     }
-    
-    definirDisponibilidad(horaDeInicio, horaDeFin, duracionTurno){
-        const turnosGenerados = this.generarSlotsPorRango(horaDeInicio, horaDeFin, duracionTurno);
-        
-        this.disponibilidades.push(disponibilidad);
+
+    // UNA DISPONIBILIDAD HORARIA POR DIA DE SEMANA
+    definirDisponibilidad(unaDisponibilidad){
+        const yaExiste = this.disponibilidades.findIndex(d => d.diaSemana === unaDisponibilidad.diaSemana);
+        if (yaExiste >= 0){
+        // Si ya tenía horario ese día, lo pisa
+        this.disponibilidades[yaExiste] = unaDisponibilidad;
+        } else {
+        // Si es un día nuevo, lo agrega
+        this.disponibilidades.push(unaDisponibilidad);
+        }
     }
 
-    // utils/generarSlots.js
 
-/**
- * Transforma un string "HH:MM" en minutos totales desde el inicio del día
- */
-    horaAMinutos = (horaStr) => {
-    const [horas, minutos] = horaStr.split(':').map(Number);
-     return horas * 60 + minutos;
-    };
-
-/**
- * Transforma minutos totales de vuelta a un string "HH:MM"
- */
-    minutosAHora = (minutosTotales) => {
-    const horas = Math.floor(minutosTotales / 60).toString().padStart(2, '0');
-    const minutos = (minutosTotales % 60).toString().padStart(2, '0');
-    return `${horas}:${minutos}`;
-    };
-
-/**
- * Genera el array de turnos posibles basados en un rango y una duración
- */
-    generarSlotsPorRango = (inicioStr, finStr, duracion) => {
-    const slots = [];
-    let tiempoActual = horaAMinutos(inicioStr);
-    const tiempoFin = horaAMinutos(finStr);
-
-    while (tiempoActual + duracion <= tiempoFin) {
-        slots.push({
-        inicio: minutosAHora(tiempoActual),
-        fin: minutosAHora(tiempoActual + duracion)
-    });
-    tiempoActual += duracion; // Saltamos al siguiente bloque
-    }
-
-    return slots;
-    };
-
-// Ejemplo de uso:
-    rangoEjemplo = { inicio: "08:00", fin: "10:00" };
-    turnosDe30Min = generarSlotsPorRango(rangoEjemplo.inicio, rangoEjemplo.fin, 30);
-
-    console.log(turnosDe30Min);
-/* 
-
-Salida:
-[
-  { inicio: '08:00', fin: '08:30' },
-  { inicio: '08:30', fin: '09:00' },
-  { inicio: '09:00', fin: '09:30' },
-  { inicio: '09:30', fin: '10:00' }
-]
-*/
-    
-    //Agrego para comprobar el nombre del medico
     getNombre(){
             return this.nombre;
         }
 
-    /*
-    agregarEspecialidad(especialidad) {
-        this.especialidades.push(especialidad);
-    }
-
-    agregarPractica(practica) {
-        this.practicas.push(practica);
-    }
-
-    agregarSede(sede) {
-        this.sedes.push(sede);
-    }
-
-    reducirDisponibilidad(unaDisponibilidad){
-        this.disponibilidades = this.disponibilidades.filter(
-        d => d !== unaDisponibilidad);
-    }
-
-    agendarTurno(fechaHora, practica){
-        this.reducirDisponibilidad(fechaHora);
-        this.agregarPractica(practica);
-    }
-     */
     verificarEspecialidad(unaEspecialidad){
         this.especialidades.contains(unaEspecialidad);
     }
