@@ -36,3 +36,52 @@ export class Agenda {
     }
     
 }
+
+
+
+
+//dejo estas funciones para emplearla despues en la generacion de turnos por slots o duracion
+
+
+/*
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    horaAMinutos = (horaStr) => {
+    const [horas, minutos] = horaStr.split(':').map(Number);
+     return horas * 60 + minutos;
+    };
+
+/**
+ * Transforma minutos totales de vuelta a un string "HH:MM"
+
+    minutosAHora = (minutosTotales) => {
+    const horas = Math.floor(minutosTotales / 60).toString().padStart(2, '0');
+    const minutos = (minutosTotales % 60).toString().padStart(2, '0');
+    return `${horas}:${minutos}`;
+    };
+
+/*Genera el array de turnos posibles basados en un rango y una duración*/
+
+/*
+    generarSlotsPorRango = (inicioStr, finStr, duracion) => {
+    const slots = [];
+    let tiempoActual = horaAMinutos(inicioStr);
+    const tiempoFin = horaAMinutos(finStr);
+
+    while (tiempoActual + duracion <= tiempoFin) {
+        slots.push({
+        inicio: minutosAHora(tiempoActual),
+        fin: minutosAHora(tiempoActual + duracion)
+    });
+    tiempoActual += duracion; // Saltamos al siguiente bloque
+    }
+
+    return slots;
+    };
+
+
+    enbaseaslotsgenerados(){
+        const turnosGenerados = this.generarSlotsPorRango(this.horaDesde, this.horaHasta, this.duracionTurno);
+        return turnosGenerados;
+    }
+*/

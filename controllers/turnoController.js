@@ -119,14 +119,14 @@ export class TurnoController {
     extraerFiltros(query) {
         const filtros = {}
         /*
-        if (query.precioMin !== undefined) {
-            const precioMin = Number(query.precioMin)
+        if (query.medico !== undefined) {
+            const medico = Object(query.medico)
             if (!Number.isFinite(precioMin)) {
                 throw new BadRequestError("precioMin debe ser un número válido")
             }
             filtros.precioMin = precioMin
         }
-
+        
         if (query.precioMax !== undefined) {
             const precioMax = Number(query.precioMax)
             if (!Number.isFinite(precioMax)) {

@@ -6,7 +6,7 @@ export class Paciente{
         this.obraSocial = obraSocial;
         this.plan = plan;
         this.turnosRealizados = [];
-        this.nombre;
+        this.nombre = nombre;
     }
 
         agregarTurnoRealizado(turno){
