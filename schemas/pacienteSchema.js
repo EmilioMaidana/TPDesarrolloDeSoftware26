@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import { Paciente as PacienteClass } from "../models/entities/paciente.js";
+import { Paciente as PacienteClass } from "../domain/Paciente.js";
 
 const pacienteSchema = new mongoose.Schema({
 
