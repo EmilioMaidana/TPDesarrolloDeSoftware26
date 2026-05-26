@@ -1,6 +1,7 @@
 import { Agenda } from "../domain/Agenda.js"
 import { Turno } from "../domain/Turno.js"
 import { Constants } from "../domain/Constants.js"
+import { Especialidad } from "../domain/especialidad.js"
 import {
     BadRequestError,
     ConflictError,
@@ -147,24 +148,23 @@ export class TurnoService {
         }
     }
 
-    /*validarFiltros({ precioMin, precioMax, categoria } = {}) {
-        if (precioMin !== undefined && precioMin <= 0) {
-            throw new BadRequestError("precioMin debe ser mayor a 0")
+    validarFiltros({estado, diaSemana, servicio} = {}) {
+        if (estado === estado.CANCELADO  || estado === estado.REALIZADO ||estado === undefined) {
+            throw new BadRequestError("el turno no esta disponible")
         }
-        if (precioMax !== undefined && precioMax <= 0) {
-            throw new BadRequestError("precioMax debe ser mayor a 0")
+        
+        if (diaSemana === diaSemana.SABADO || diaSemana === diaSemana.DOMINGO || estado === undefined) {
+            throw new BadRequestError("el dia de la semana tiene que ser valido")
         }
-        if (precioMin !== undefined && precioMax !== undefined && precioMin > precioMax) {
-            throw new BadRequestError("precioMin no puede ser mayor que precioMax")
+
+        if (!(servicio instanceof Practica) || !(servicio instanceof Especialidad)) {
+            throw new BadRequestError("el servicio debe existir")
         }
-        if (categoria !== undefined && (typeof categoria !== "string" || categoria.trim().length === 0)) {
-            throw new BadRequestError("La categoría debe ser una cadena de texto no vacía")
-        }
-    }*/
+    }
 
     validarPaginacion(numeroPagina, limitePorPagina) {
-        this.validarEnteroPositivo(numeroPagina, "Numero de página")
-        this.validarEnteroPositivo(limitePorPagina, "Límite por página")
+        this.validarEnteroPositivo(numeroPagina, "Numero de pagina")
+        this.validarEnteroPositivo(limitePorPagina, "Limite por pagina")
     }
 
     validarEnteroPositivo(numero, parametro) {

@@ -26,18 +26,19 @@ export class TurnoRepository {
     obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}) {
         let turnos = this.obtenerTodos()
 
-        /*
-        Arreglar la validacion de filtros
-        if (filtros.precioMin !== undefined) {
-            productos = productos.filter((p) => p.precio >= filtros.precioMin)
+        //Arreglar la validacion de filtros
+        if (filtros.estado !== undefined) {
+            turnos = turnos.filter((t) => t.estado === DISPONIBLE)
         }
-        if (filtros.precioMax !== undefined) {
-            productos = productos.filter((p) => p.precio <= filtros.precioMax)
+        if (filtros.diaSemana !== undefined) {
+            turnos = turnos.filter((t) => {
+                (t.diaSemana === LUNES) || (t.diaSemana === MARTES)|| (t.diaSemana === MIERCOLES)
+                || (t.diaSemana === JUEVES) ||(t.diaSemana === VIERNES)
+            })
         }
-        if (filtros.categoria !== undefined) {
-            const categoriaNormalizada = filtros.categoria.trim().toLowerCase()
-            productos = productos.filter((p) => p.categoria.trim().toLowerCase() === categoriaNormalizada)
-        }*/
+        if (filtros.especialidad !== undefined) {
+            turnos = turnos.filter((t) => t.servicio instanceof Practica || t.servicio instanceof Servicio)
+        }
 
         const inicio = (numeroPagina - 1) * limitePorPagina
         const fin = inicio + limitePorPagina

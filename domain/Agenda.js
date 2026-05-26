@@ -30,7 +30,7 @@ export class Agenda {
             // Por Dia Semana
             for (let { inicio, fin } of slotsTurnosDisponible) {
             
-                // Creamos la instancia pasándole 'inicio' (que va a valer '08:00', '08:30', etc.)
+                // Creamos la instancia pasandole 'inicio' (que va a valer '08:00', '08:30', etc.)
                 const turno = new Turno(
                     medico, 
                     null, 
@@ -111,7 +111,7 @@ export class Agenda {
     return `${horas}:${minutos}`;
     };
 
-/*Genera el array de turnos posibles basados en un rango y una duración*/
+/*Genera el array de turnos posibles basados en un rango y una duracion*/
 
 
     /* 

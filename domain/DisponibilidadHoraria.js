@@ -6,6 +6,6 @@ export class DisponibilidadHoraria{
         this.servicio = servicio;
     }
     /**
- * Transforma un string "HH:MM" en minutos totales desde el inicio del día
+ * Transforma un string "HH:MM" en minutos totales desde el inicio del dia
  */
 }
