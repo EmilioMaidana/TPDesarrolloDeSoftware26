@@ -1,16 +1,19 @@
 import { Turno } from "../domain/Turno.js"
 import { Constants } from "../domain/Enums.js"
+import { diaSemana,
+        EstadoTurno,
+} from "../domain/Enums.js"
 import {
     BadRequestError,
     NotFoundError,
     UnprocessableEntityError
 } from "../errors/AppError.js"
-
+import { TurnoModel } from "../schemas/TurnoSchema.js";
 
 
 export class TurnoRepository {
     constructor() {
-        this.turno = {}
+        this.turnos = {}
         this.nextId = 1
     }
 
@@ -20,7 +23,7 @@ export class TurnoRepository {
     }
 
     obtenerTodos() {
-        return Object.values(this.turnos).filter((turno) => !turno.getEstado() === Constants.EstadoTurno.CANCELADO)
+        return Object.values(this.turnos).filter((turno) => turno.estado !== EstadoTurno.CANCELADO)
     }
 
     obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}) {
@@ -28,14 +31,13 @@ export class TurnoRepository {
 
         //Arreglar la validacion de filtros
         if (filtros.estado !== undefined) {
-            turnos = turnos.filter((t) => t.estado === DISPONIBLE)
+            turnos = turnos.filter((t) => t.estado === EstadoTurno.DISPONIBLE)
         }
+
         if (filtros.diaSemana !== undefined) {
-            turnos = turnos.filter((t) => {
-                (t.diaSemana === LUNES) || (t.diaSemana === MARTES)|| (t.diaSemana === MIERCOLES)
-                || (t.diaSemana === JUEVES) ||(t.diaSemana === VIERNES)
-            })
+            turnos = turnos.filter((t) => (t) => t.diaSemana === filtros.diaSemana)
         }
+
         if (filtros.especialidad !== undefined) {
             turnos = turnos.filter((t) => t.servicio instanceof Practica || t.servicio instanceof Servicio)
         }
@@ -50,7 +52,7 @@ export class TurnoRepository {
     }
 
     guardar(turno) {
-        this.validarProducto(turno)
+        this.validarTurno(turno)
 
         const id = turno.id ?? this.nextId++
         turno.id = id
@@ -80,12 +82,12 @@ export class TurnoRepository {
         const nombreNormalizado = nombre.trim().toLowerCase()
 
         return (
-            Object.values(this.productos).find((producto) => {
+            Object.values(this.turnos).find((turno) => {
                 if (!incluirEliminados && producto.eliminado) {
                     return false
                 }
 
-                return producto.nombre.trim().toLowerCase() === nombreNormalizado
+                return turno.medico?.nombre?.trim().toLowerCase() === nombreNormalizado
             }) ?? null
         )
     }
@@ -103,7 +105,7 @@ export class TurnoRepository {
         return turnoAEliminar
     }
 
-    validarProducto(turno) {
+    validarTurno(turno) {
         if (!(turno instanceof Turno)) {
             throw new UnprocessableEntityError("El turno es inválido")
         }

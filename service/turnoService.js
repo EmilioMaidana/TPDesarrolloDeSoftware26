@@ -1,6 +1,8 @@
 import { Agenda } from "../domain/Agenda.js"
 import { Turno } from "../domain/Turno.js"
-import { Constants } from "../domain/Constants.js"
+import { diaSemana,
+        EstadoTurno,
+} from "../domain/Enums.js"
 import { Especialidad } from "../domain/especialidad.js"
 import {
     BadRequestError,
@@ -9,6 +11,7 @@ import {
     UnprocessableEntityError
 } from "../errors/AppError.js"
 import { TurnoRepository } from "../repositories/TurnoRepository.js";
+import { Practica } from "../domain/practica.js";
 
 export class TurnoService {
     constructor({
@@ -19,7 +22,7 @@ export class TurnoService {
 
     //Para consultar el historial de turnos de un paciente
     async consultarHistorialPaciente(idPaciente) {
-        return turnoRepository.buscarPorPaciente(idPaciente);
+        return this.turnoRepository.buscarPorPaciente(idPaciente);
     }
 
     obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
@@ -59,10 +62,11 @@ export class TurnoService {
     crear(datosTurno) {
         this.validarDatosTurno(datosTurno)
         // verificar que validaciones tienen que realizarse en este punto
-        this.validarNombreDisponible(datosTurno.getMedico().getNombre())
-        this.validarNombreDisponible(datosTurno.getPaciente().getNombre())
+        //this.validarNombreDisponible(datosTurno.getMedico().getNombre())
+        //this.validarNombreDisponible(datosTurno.getPaciente().getNombre())
+        this.validarMedicoExistente(datosTurno.medico)
+        this.validarPacienteExistente(datosTurno.paciente)
         
-
         const turno = new Turno(
             datosTurno.medico,
             datosTurno.paciente,
@@ -105,7 +109,7 @@ export class TurnoService {
         this.validarEnteroPositivo(id, "Id")
         const turno = this.obtenerPorId(id)
 
-        turno.estado = CANCELADO
+        turno.estado = EstadoTurno.CANCELADO
 
         return this.turnoRepository.guardar(turno)
     }
@@ -130,11 +134,11 @@ export class TurnoService {
             throw new UnprocessableEntityError("El precio debe ser mayor a 0")
         }
 
-        if (!Date.isDate(fechaHora) || fechaHora <= 0) {
+        if (!isNaN(new Date(fechaHora)) || fechaHora <= 0) {
             throw new UnprocessableEntityError("El dia tiene que estar declarado")
         }
 
-        if (estado !== Constants.EstadoTurno.CONFIRMADO || estado !== Constants.EstadoTurno.DISPONIBLE) {
+        if (estado !== Constants.EstadoTurno.CONFIRMADO && estado !== Constants.EstadoTurno.DISPONIBLE) {
             throw new UnprocessableEntityError("El estado del turno debe ser CONFIRMADO o DISPONIBLE")
         }
     }

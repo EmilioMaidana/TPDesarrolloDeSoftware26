@@ -1,5 +1,5 @@
 import { BadRequestError,} from "../errors/AppError.js"
-import { ProductoService } from "../services/ProductoService.js";
+import { TurnoService } from "../services/TurnoService.js";
 
 export class TurnoController {
     constructor({
@@ -11,7 +11,7 @@ export class TurnoController {
     //Para consultar el historial de turnos de un paciente
     async historial(req, res) {
 
-        const turnos = await turnoService.consultarHistorialPaciente(req.params.id);
+        const turnos = await this.turnoService.consultarHistorialPaciente(req.params.id);
         res.json(turnos);
     }
 
@@ -24,12 +24,12 @@ export class TurnoController {
 
             return res.status(200).json({
                 status: "success",
-                data: resultado.productos,
+                data: resultado.turnos,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePorPagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
-                    totalProductos: resultado.totalProductos
+                    totalTurnos: resultado.totalTurnos
                 }
             })
         } catch (error) {
@@ -39,7 +39,7 @@ export class TurnoController {
 
     create = async (req, res, next) => {
         try {
-            //const datosTurno = this.extraerYValidarBodyProducto(req.body)
+            const datosTurno = this.extraerYValidarBodyTurno(req.body)
             const turnoCreado = this.turnoService.crear(datosTurno)
 
             return res.status(201).json({ status: "success", data: turnoCreado })
@@ -63,6 +63,7 @@ export class TurnoController {
         try {
             const id = this.parsearId(req.params.id)
             const datosTurno = this.extraerYValidarBodyProducto(req.body)
+            //const datosTurno = this.extraerYValidarBodyTurno(req.body)
             const turnoActualizado = this.turnoService.actualizar(id, datosTurno)
 
             return res.status(200).json({ status: "success", data: turnoActualizado })
@@ -120,12 +121,11 @@ export class TurnoController {
             costo: body.costo
         }
     }
-
     extraerFiltros(query) {
         const filtros = {}
 
         if (query.medico !== undefined) {
-            if (!Object.isFinite(medico)) {
+            if (!Number.isFinite(medico)) {
                 throw new BadRequestError("el medico debe existir")
             }
             filtros.medico = query.medico
