@@ -1,6 +1,6 @@
 export class Agenda {
     // Metodo 1: Especifico para especialidades
-    let turnosExistentes = [];
+    //let turnosExistentes = [];
 
     generarTurnosPorEspecialidad(servicio, medico) {
     return medico.disponibilidad.flatMap(disponibilidad => generarSlotsPorRango(disponibilidad.horaDesde,disponibilidad.horaHasta,servicio.duracion).map(({ inicio }) => new Turno(
@@ -78,7 +78,7 @@ export class Agenda {
         return {
             eliminar: eliminarTurnos,
             conservar: conservarTurnos
-            nuevos: nuevosTurnos
+            //nuevos: nuevosTurnos
         }
 
        // turnos = medico.identificarTurnos();
@@ -114,6 +114,7 @@ export class Agenda {
 /*Genera el array de turnos posibles basados en un rango y una duración*/
 
 
+    /* 
     generarSlotsPorRango = (inicioStr, finStr, duracion) => {
     const slots = [];
     let tiempoActual = horaAMinutos(inicioStr);
@@ -129,6 +130,8 @@ export class Agenda {
 
     return slots;
     };
+
+    */
 
 /*
     enbaseaslotsgenerados(){
