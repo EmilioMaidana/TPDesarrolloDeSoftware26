@@ -14,166 +14,86 @@ import { TurnoRepository } from "../repositories/TurnoRepository.js";
 import { Practica } from "../domain/practica.js";
 
 export class TurnoService {
-    constructor({
-        turnoRepository = new TurnoRepository()
-    } = {}) {
-        this.turnoRepository = turnoRepository;
+    
+    constructor(turnoRepository) {
+        this.turnoRepository = turnoRepository
     }
 
-    //Para consultar el historial de turnos de un paciente
-    async consultarHistorialPaciente(idPaciente) {
-        return this.turnoRepository.buscarPorPaciente(idPaciente);
-    }
-
-    obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
-        this.validarPaginacion(numeroPagina, limitePorPagina)
-        // arreglar la validacion de filtros
-        //this.validarFiltros(filtros)
-
-        const { turnos, totalTurnos } = this.turnoRepository.obtenerPaginados(
-            numeroPagina,
-            limitePorPagina,
-            filtros
-        )
-
-        const totalPaginas = totalTurnos === 0 ? 0 : Math.ceil(totalTurnos / limitePorPagina)
-
+    //Aca como mas nos guste podemos transformar el objeto a un DTO
+    toDTO(turno) {
         return {
-            turnos,
-            numeroPagina,
-            limitePorPagina,
-            totalPaginas,
-            totalTurnos
-        }
-    }
-    /*
-    obtenerPorId(id) {
-        this.validarEnteroPositivo(id, "Id")
-
-        const turnos = this.turnoRepository.obtenerPorId(id)
-
-        if (!turnos) {
-            throw new NotFoundError("Turno no encontrado")
-        }
-
-        return turnos
-    }*/
-
-    crear(datosTurno) {
-        this.validarDatosTurno(datosTurno)
-        // verificar que validaciones tienen que realizarse en este punto
-        //this.validarNombreDisponible(datosTurno.getMedico().getNombre())
-        //this.validarNombreDisponible(datosTurno.getPaciente().getNombre())
-        this.validarMedicoExistente(datosTurno.medico)
-        this.validarPacienteExistente(datosTurno.paciente)
-        
-        const turno = new Turno(
-            datosTurno.medico,
-            datosTurno.paciente,
-            datosTurno.fechaHora,
-            datosTurno.sede,
-            datosTurno.servicio,
-            datosTurno.estado,
-            datosTurno.historialEstados,
-            datosTurno.costo
-        )
-
-        return this.turnoRepository.guardar(turno)
+            id: turno.id || turno._id, //validacion de if default de mongo
+            nombre: turno.nombre,
+            //precioPorNoche: turno.precioPorNoche,
+        };
     }
 
-    actualizar(id, datosTurno) {
-        this.validarEnteroPositivo(id, "Id")
-
-        this.validarDatosTurno(datosTurno)
-
-        const turnoExistente = this.obtenerPorId(id)
-        this.validarNombreDisponible(datosTurno.getMedico().getNombre(),id)
-        this.validarNombreDisponible(datosTurno.getPaciente().getNombre(),id)
-
-        const turnoActualizado = new Turno(
-            datosTurno.medico,
-            datosTurno.paciente,
-            datosTurno.fechaHora,
-            datosTurno.sede,
-            datosTurno.servicio,
-            datosTurno.estado,
-            datosTurno.historialEstados,
-            datosTurno.costo
-        )
-
-        turnoActualizado.id = turnoExistente.id
-        return this.turnoRepository.guardar(turnoActualizado)
+    async findAll() {
+        const alojamientos = await this.turnoRepository.findAll();
+        return alojamientos.map(a => this.toDTO(a));
     }
 
-    eliminar(id) {
-        this.validarEnteroPositivo(id, "Id")
-        const turno = this.obtenerPorId(id)
+    async create(data) {
+        const { nombre, precioPorNoche } = data;
 
-        turno.estado = EstadoTurno.CANCELADO
+        if (!nombre || !precioPorNoche) {
+            throw new ValidationError('Nombre y precioPorNoche son requeridos');
+        }
 
-        return this.turnoRepository.guardar(turno)
+        const existente = await this.turnoRepository.findByName(nombre);
+        if (existente) {
+            throw new ConflictError(`Ya existe un turno con el nombre ${nombre}`);
+        }
+
+        const nuevo = new Alojamiento(nombre, precioPorNoche);
+        const alojamientoGuardado = await this.turnoRepository.save(nuevo);
+
+        return this.toDTO(alojamientoGuardado);
     }
 
-    validarDatosTurno(datosTurno) {
-        if (!datosTurno || typeof datosTurno !== "object" || Array.isArray(datosTurno)) {
-            throw new BadRequestError("Los datos del turno son inválidos")
+    
+    async findById(id) {
+        const turno = await this.turnoRepository.findById(id);
+        if (!turno) {
+            throw new NotFoundError("Turno no encontrado");
         }
 
-        const {medico,paciente,fechaHora,sede,servicio,estado,historialEstados,costo} = datosTurno
+        return this.toDTO(turno);
+    }
+    
 
-        if (typeof medico.getNombre() !== "string" || medico.getNombre().trim().length < 3) {
-            throw new UnprocessableEntityError("El nombre del medico del turno debe tener al menos 3 caracteres")
+    async update(id, data) {
+        const turno = await this.turnoRepository.findById(id);
+        if (!turno) {
+            throw new NotFoundError("Turno no encontrado");
         }
 
-        
-        if (typeof paciente.getNombre() !== "string" || paciente.getNombre().trim().length < 3) {
-            throw new UnprocessableEntityError("El nombre del paciente del turno debe tener al menos 3 caracteres")
-        }
+        if (data.nombre !== undefined) turno.nombre = data.nombre;
+        //fijarse los datos correctos a actualizar segun el modelo
+        //if (data.precioPorNoche !== undefined) turno.precioPorNoche = data.precioPorNoche;
 
-        if (!Number.isFinite(costo) || costo <= 0) {
-            throw new UnprocessableEntityError("El precio debe ser mayor a 0")
-        }
-
-        if (!isNaN(new Date(fechaHora)) || fechaHora <= 0) {
-            throw new UnprocessableEntityError("El dia tiene que estar declarado")
-        }
-
-        if (estado !== Constants.EstadoTurno.CONFIRMADO && estado !== Constants.EstadoTurno.DISPONIBLE) {
-            throw new UnprocessableEntityError("El estado del turno debe ser CONFIRMADO o DISPONIBLE")
-        }
+        const actualizado = await this.turnoRepository.save(turno);
+        return this.toDTO(actualizado);
     }
 
-    validarNombreDisponible(nombre, idActual = null) {
-        const productoExistente = this.turnoRepository.obtenerPorNombre(nombre)
-        const existeProductoConMismoNombre = productoExistente && productoExistente.id !== idActual
-
-        if (existeProductoConMismoNombre) {
-            throw new ConflictError("Ya existe un turno con este medico")
+    async delete(id) {
+        const turno = await this.turnoRepository.findById(id);
+        if (!turno) {
+            throw new NotFoundError("Turno no encontrado");
         }
+        await this.turnoRepository.delete(id);
+        return this.toDTO(turno);
     }
 
-    validarFiltros({estado, diaSemana, servicio} = {}) {
-        if (estado === estado.CANCELADO  || estado === estado.REALIZADO ||estado === undefined) {
-            throw new BadRequestError("el turno no esta disponible")
-        }
-        
-        if (diaSemana === diaSemana.SABADO || diaSemana === diaSemana.DOMINGO || estado === undefined) {
-            throw new BadRequestError("el dia de la semana tiene que ser valido")
-        }
-
-        if (!(servicio instanceof Practica) || !(servicio instanceof Especialidad)) {
-            throw new BadRequestError("el servicio debe existir")
-        }
+    //GET ALL PAGINADO
+    async findAllPaginated(page, limit) {
+        return await this.turnoRepository
+            .findAllPaginated(page, limit)
     }
 
-    validarPaginacion(numeroPagina, limitePorPagina) {
-        this.validarEnteroPositivo(numeroPagina, "Numero de pagina")
-        this.validarEnteroPositivo(limitePorPagina, "Limite por pagina")
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`${parametro} debe ser un entero positivo`)
-        }
+    //SOFT DELETE
+    async softDelete(id) {
+        return await this.turnoRepository
+            .softDelete(id)
     }
 }

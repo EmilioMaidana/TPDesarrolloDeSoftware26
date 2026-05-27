@@ -2,171 +2,84 @@ import { BadRequestError,} from "../errors/AppError.js"
 import { TurnoService } from "../services/TurnoService.js";
 
 export class TurnoController {
-    constructor({
-        turnoService = new TurnoService()
-    } = {}) {
-        this.turnoService = turnoService;
-    }
-
-    //Para consultar el historial de turnos de un paciente
-    async historial(req, res) {
-
-        const turnos = await this.turnoService.consultarHistorialPaciente(req.params.id);
-        res.json(turnos);
+    constructor(turnoService) {
+        this.turnoService = turnoService
     }
 
 
-    findAll = async (req, res, next) => {
-        try {
-            const paginacion = this.extraerPaginacion(req.query)
-            const filtros = this.extraerFiltros(req.query)
-            const resultado = this.turnoService.obtenerTodos({ ...paginacion, filtros })
-
-            return res.status(200).json({
-                status: "success",
-                data: resultado.turnos,
-                paginacion: {
-                    numeroPagina: resultado.numeroPagina,
-                    limitePorPagina: resultado.limitePorPagina,
-                    totalPaginas: resultado.totalPaginas,
-                    totalTurnos: resultado.totalTurnos
-                }
-            })
+    async findAll(req, res, next) {
+        try { 
+            const turno = await this.turnoService.findAll();
+            res.json(turno);
         } catch (error) {
-            return next(error)
+            next(error);
         }
     }
 
-    create = async (req, res, next) => {
+    
+    async create(req, res, next) {
         try {
-            const datosTurno = this.extraerYValidarBodyTurno(req.body)
-            const turnoCreado = this.turnoService.crear(datosTurno)
-
-            return res.status(201).json({ status: "success", data: turnoCreado })
+            const turno = await this.turnoService.create(req.body);
+            res.status(201).json(turno);
         } catch (error) {
-            return next(error)
+            next(error);
         }
     }
-    /*
-    findById = async (req, res, next) => {
+
+    async findById(req, res, next) {
         try {
-            const id = this.parsearId(req.params.id)
-            const turno = this.turnoService.obtenerPorId(id)
-
-            return res.status(200).json({ status: "success", data: turno })
+            const turno = await this.turnoService.findById(req.params.id);
+            res.json(turno);
         } catch (error) {
-            return next(error)
+            next(error);
         }
-    }*/
+    }
 
-    update = async (req, res, next) => {
+    async update(req, res, next) {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosTurno = this.extraerYValidarBodyProducto(req.body)
-            //const datosTurno = this.extraerYValidarBodyTurno(req.body)
-            const turnoActualizado = this.turnoService.actualizar(id, datosTurno)
-
-            return res.status(200).json({ status: "success", data: turnoActualizado })
-        } catch (error) {
-            return next(error)
-        }
-    }
-
-    delete = async (req, res, next) => {
-        try {
-            const id = this.parsearId(req.params.id)
-            const turnoEliminado = this.turnoService.eliminar(id)
-
-            return res.status(200).json({ status: "success", data: turnoEliminado })
-        } catch (error) {
-            return next(error)
-        }
-    }
-    /*
-    parsearId(idParam) {
-        const id = Number(idParam)
-
-        this.validarEnteroPositivo(id, "id")
-
-        return id
-    }*/
-
-    extraerYValidarBodyTurno(body) {
-        if (!body || typeof body !== "object" || Array.isArray(body)) {
-            throw new BadRequestError("El cuerpo de la request es inválido")
-        }
-
-        const camposPermitidos = ["medico","paciente","fechaHora","sede","servicio","estado","historialEstados","costo"]
-        const camposBody = Object.keys(body)
-        const camposNoPermitidos = camposBody.filter((campo) => !camposPermitidos.includes(campo))
-
-        if (camposNoPermitidos.length > 0) {
-            throw new BadRequestError(`Campos no permitidos en la request: ${camposNoPermitidos.join(", ")}`)
-        }
-
-        const camposFaltantes = camposPermitidos.filter((campo) => body[campo] === undefined)
-
-        if (camposFaltantes.length > 0) {
-            throw new BadRequestError(`Faltan campos obligatorios en la request: ${camposFaltantes.join(", ")}`)
-        }
-
-        return {
-            medico: body.medico,
-            paciente: body.paciente,
-            fechaHora: body.fechaHora,
-            sede: body.sede,
-            servicio: body.servicio,
-            estado: body.estado,
-            historialEstados: body.historialEstados,
-            costo: body.costo
-        }
-    }
-    extraerFiltros(query) {
-        const filtros = {}
-
-        if (query.medico !== undefined) {
-            if (!Number.isFinite(medico)) {
-                throw new BadRequestError("el medico debe existir")
+            const turno = await this.turnoService.update(req.params.id, req.body);
+            /*
+            if (!turno) {
+                return res.status(404).json({ message: "Turno not found" });
             }
-            filtros.medico = query.medico
-        }
-
-        if (query.horaDesde !== undefined) {
-            const regexHora = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
-            if (!regexHora.test(query.horaDesde)) {
-                throw new BadRequestError("La hora de inicio debe tener formato HH:MM")
-            }
-            filtros.horaDesde = query.horaDesde
-        }
-        
-        if (query.horaHasta !== undefined) {
-        const regexHora = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
-        if (!regexHora.test(query.horaHasta)) {
-            throw new BadRequestError("La hora de fin debe tener formato HH:MM")
-        }
-        filtros.horaHasta = query.horaHasta
-    }
-
-        if (query.especialidad !== undefined) {
-            filtros.especialidad = query.especialidad
-        }
-
-        return filtros
-    }
-
-    extraerPaginacion(query) {
-        const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
-        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
-
-        this.validarEnteroPositivo(numeroPagina, "page")
-        this.validarEnteroPositivo(limitePorPagina, "limit")
-
-        return { numeroPagina, limitePorPagina }
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`El parametro ${parametro} debe ser un entero positivo`)
+            */
+            res.json(turno);
+        } catch (error) {
+            next(error);
         }
     }
+
+    // Recordar que siempre intamos hacer baja logica
+    async delete(req, res, next) {
+        try {
+            const turno = await this.turnoService.delete(req.params.id);
+            res.json({ message: "Turno eliminado" });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    //GET ALL PAGINADO
+    async findAllPaginated(req, res, next) {
+        try {
+            const page = Number(req.query.page) || 1
+            const limit = Number(req.query.limit) || 5
+            const resultado =  await this.turnoService.findAllPaginated(page, limit)
+            res.json(resultado)
+        } catch(error) {
+            next(error)
+        }
+    }
+
+    //SOFT DELETE
+    async softDelete(req, res, next) {
+        try {
+            const resultado = await this.turnoService
+                    .softDelete(req.params.id)
+            res.json(resultado)
+        } catch(error) {
+            next(error)
+        }
+    }
+
 }

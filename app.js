@@ -8,17 +8,29 @@ import { errorLogger } from "./middlewares/errorLogger.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 import { router } from "./routes/router.js";
 
-
 const app = express();
 
 app.use(express.json())
-app.use(cors())
 
-app.use(router)
+const server = new Server(app)
 
-app.use(notFoundHandler)
-app.use(errorLogger)
-app.use(errorHandler)
+const turnoRepository = new TurnoRepository()
+
+const turnoService =
+    new TurnoService(turnoRepository)
+
+const turnoController =
+    new TurnoController(alojamientoService)
+
+server.setController(
+    TurnoController,
+    turnoController
+)
+
+
+routes.forEach(route => server.addRoute(route))
+
+server.configureRoutes()
 
 export default app
 

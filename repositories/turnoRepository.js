@@ -12,114 +12,97 @@ import { TurnoModel } from "../schemas/TurnoSchema.js";
 
 
 export class TurnoRepository {
-    constructor() {
-        this.turnos = {}
-        this.nextId = 1
+    constructor(){
+        this.model = turnoModel
     }
 
-    //Para consultar el historial de turnos de un paciente
-    async buscarPorPaciente(pacienteId) {
-        return TurnoModel.find({pacienteId});
+    async findAll() {
+        return this.model.find()
     }
 
-    obtenerTodos() {
-        return Object.values(this.turnos).filter((turno) => turno.estado !== EstadoTurno.CANCELADO)
+    async findByName(nombre) {
+        return await this.model.findOne({nombre})
     }
 
-    obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}) {
-        let turnos = this.obtenerTodos()
-
-        //Arreglar la validacion de filtros
-        if (filtros.estado !== undefined) {
-            turnos = turnos.filter((t) => t.estado === EstadoTurno.DISPONIBLE)
-        }
-
-        if (filtros.diaSemana !== undefined) {
-            turnos = turnos.filter((t) => (t) => t.diaSemana === filtros.diaSemana)
-        }
-
-        if (filtros.especialidad !== undefined) {
-            turnos = turnos.filter((t) => t.servicio instanceof Practica || t.servicio instanceof Servicio)
-        }
-
-        const inicio = (numeroPagina - 1) * limitePorPagina
-        const fin = inicio + limitePorPagina
-
-        return {
-            turnos: turnos.slice(inicio, fin),
-            totalTurnos: turnos.length
-        }
+    async save(turno) {
+        const nuevoTurno = new this.model(turno)
+        return await nuevoTurno.save()
     }
 
-    guardar(turno) {
-        this.validarTurno(turno)
-
-        const id = turno.id ?? this.nextId++
-        turno.id = id
-        this.turnos[id] = turno
-
-        return turno
-    }
-    /*
-    obtenerPorId(id, { incluirEliminados = false } = {}) {
-        this.validarId(id)
-
-        const turno = this.turnos[id] ?? null
-
-        if (!turno) {
-            return null
-        }
-
-        if (!incluirEliminados && turno.eliminado) {
-            return null
-        }
-
-        return turno
-    }*/
-
-    obtenerPorNombre(nombre, { incluirEliminados = false } = {}) {
-        this.validarNombre(nombre)
-        const nombreNormalizado = nombre.trim().toLowerCase()
-
-        return (
-            Object.values(this.turnos).find((turno) => {
-                if (!incluirEliminados && producto.eliminado) {
-                    return false
-                }
-
-                return turno.medico?.nombre?.trim().toLowerCase() === nombreNormalizado
-            }) ?? null
-        )
+    async findById(id) {
+        return await this.model.findById(id)
     }
 
-    eliminar(id) {
-        this.validarId(id)
-
-        const turnoAEliminar = this.turnos[id]
-
-        if (!turnoAEliminar) {
-            throw new NotFoundError("El id no pertenece a un turno existente")
-        }
-
-        delete this.turnos[id]
-        return turnoAEliminar
+    async update(id, turnoModificado) {
+        return await this.model.findByIdAndUpdate(id, turnoModificado, { new: true })
     }
 
-    validarTurno(turno) {
-        if (!(turno instanceof Turno)) {
-            throw new UnprocessableEntityError("El turno es inválido")
-        }
+    async delete(id) {
+        return await this.model.findByIdAndDelete(id)
+    }
+    
+    async contar(){
+        return await this.model.countDocuments()
     }
 
-    validarId(id) {
-        if (!Number.isInteger(id) || id <= 0) {
-            throw new BadRequestError("El id no es válido")
-        }
+    async softDelete(id) {
+        return await this.model.findByIdAndUpdate(id, 
+            { 
+                estado: Constants.ESTADO_INACTIVO 
+            },
+            { 
+                new: true 
+            })
     }
 
-    validarNombre(nombre) {
-        if (typeof nombre !== "string" || nombre.trim().length === 0) {
-            throw new BadRequestError("El nombre del producto es obligatorio")
-        }
+    async findAllPaginated(page = 1, limit=5) {
+        const skipN = (page - 1) * limit
+        
+        const turnos = await this.model.find({estado: Constants.ESTADO_INACTIVO}).skip(skipN).limit(limit)
+
+        const total = await this.model.countDocuments({estado: Constants.ESTADO_INACTIVO})
+
+        return {page, limit, turnos, total: Math.ceil(total / limit)}
     }
 }
+
+/*
+
+async save(reserva) {
+ const query = reserva.id ? { _id: reserva.id } : {_id: new this.model()._id }
+
+ return await this.model.findOneAndUpdate(query, reserva, 
+    { new: true, runValidators: true, upsert: true })
+
+asysnc reservasPorAlojamiento() {
+    return await this.model.aggregate([
+        {
+            $group: {
+                _id: "$alojamiento",
+                totalReservas:{ 
+                $sum: 1 
+                }
+            }
+        },
+        {
+            $lookup: {
+                from: "alojamientos",
+                localField: "_id",
+                foreignField: "_id",
+                as: "alojamiento"
+
+            }
+        },
+        {
+            $unwind: "$alojamiento"
+        },
+        {
+            $project: {
+                _id: 0,
+                alojamiento: "$alojamiento.nombre",
+                totalReservas: 1
+            }
+        }
+    ])}
+
+*/ 
