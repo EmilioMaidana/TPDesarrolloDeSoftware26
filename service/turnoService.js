@@ -8,7 +8,8 @@ import {
     BadRequestError,
     ConflictError,
     NotFoundError,
-    UnprocessableEntityError
+    UnprocessableEntityError,
+    ValidationError
 } from "../errors/AppError.js"
 import { TurnoRepository } from "../repositories/TurnoRepository.js";
 import { Practica } from "../domain/practica.js";
@@ -23,32 +24,38 @@ export class TurnoService {
     toDTO(turno) {
         return {
             id: turno.id || turno._id, //validacion de if default de mongo
-            nombre: turno.nombre,
-            //precioPorNoche: turno.precioPorNoche,
+            medico: turno.medico,
+            paciente: turno.paciente,
+            fechaHora: turno.fechaHora,
+            sede: turno.sede,
+            servicio: turno.servicio,
+            estado: turno.estado,
+            costo: turno.costo
         };
     }
 
     async findAll() {
-        const alojamientos = await this.turnoRepository.findAll();
-        return alojamientos.map(a => this.toDTO(a));
+        const turnos = await this.turnoRepository.findAll();
+        return turnos.map(a => this.toDTO(a));
     }
 
     async create(data) {
-        const { nombre, precioPorNoche } = data;
+        const { medico, paciente, fechaHora, sede, servicio, estado, historialEstados, costo, eliminado } = data;
 
-        if (!nombre || !precioPorNoche) {
-            throw new ValidationError('Nombre y precioPorNoche son requeridos');
+        if (!medico || !paciente || !fechaHora || !sede || !servicio || !estado) {
+            throw new ValidationError('algunos campos estan mal cargados o faltan');
         }
 
-        const existente = await this.turnoRepository.findByName(nombre);
+        // Buscar si ya existe un turno para ese medico en esa fechaHora
+        const existente = await this.turnoRepository.findByMedicoAndFecha(medico, fechaHora);
         if (existente) {
-            throw new ConflictError(`Ya existe un turno con el nombre ${nombre}`);
+            throw new ConflictError(`Ya existe un turno con este horario para este médico`);
         }
 
-        const nuevo = new Alojamiento(nombre, precioPorNoche);
-        const alojamientoGuardado = await this.turnoRepository.save(nuevo);
+        const nuevo = new Turno(medico, paciente, fechaHora, sede, servicio, estado, historialEstados, costo, eliminado);
+        const turnoGuardado = await this.turnoRepository.save(nuevo);
 
-        return this.toDTO(alojamientoGuardado);
+        return this.toDTO(turnoGuardado);
     }
 
     
