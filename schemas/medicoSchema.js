@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
-import { disponibilidadHorariaSchema } from "./DisponibilidadHorariaSchema.js";
+import { disponibilidadHorariaSchema } from "./disponibilidadHorariaSchema.js";
+import { sedeSchema } from "./sedeSchema.js";
 import { Medico as MedicoClass } from "../domain/Medico.js";
 
 const medicoSchema = new mongoose.Schema({
@@ -41,7 +42,7 @@ const medicoSchema = new mongoose.Schema({
   },
 
   sedes: {
-    type: [mongoose.Schema.Types.Mixed],
+    type: [sedeSchema],
     default: [],
   },
 
@@ -68,8 +69,4 @@ medicoSchema.set("toJSON", {
   versionKey: false,
 });
 
-export const MedicoModel =
-mongoose.model(
-  "Medico",
-  medicoSchema
-);
+export const MedicoModel = mongoose.model("Medico", medicoSchema);

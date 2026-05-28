@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 import { DiaSemana } from "../domain/Enums.js";
 
-export const disponibilidadHorariaSchema =
-new mongoose.Schema({
+export const disponibilidadHorariaSchema = new mongoose.Schema({
 
   diaSemana: {
     type: String,
@@ -31,6 +30,11 @@ new mongoose.Schema({
     type: String,
     enum: ["Especialidad", "Practica"],
     required: true,
+  },
+
+  sede: {
+    nombre: String,
+    direccion: String,
   }
 },
 

@@ -1,141 +1,102 @@
+import { EstadoTurno, DiaSemanaNumero } from './Enums.js';
+
 export class Agenda {
-    // Metodo 1: Especifico para especialidades
-    //let turnosExistentes = [];
 
-    generarTurnosPorEspecialidad(servicio, medico) {
-    return medico.disponibilidad.flatMap(disponibilidad => generarSlotsPorRango(disponibilidad.horaDesde,disponibilidad.horaHasta,servicio.duracion).map(({ inicio }) => new Turno(
-            medico, 
-            null, 
-            inicio, 
-            null, 
-            servicio, 
-            EstadoTurno.DISPONIBLE, 
-            null, 
-            500, 
-            null
-        ))
-    );
+    /**
+     * Convierte string "HH:MM" a minutos totales desde medianoche
+     */
+    static horaAMinutos(horaStr) {
+        const [horas, minutos] = horaStr.split(':').map(Number);
+        return horas * 60 + minutos;
     }
-    
-    generarTurnosPorEspecialidad(servicio, medico) {
-        let turnos = [];
-        
 
-        for (let disponibilidad of medico.disponibilidad){
-            const slotsTurnosDisponible = generarSlotsPorRango(
-                disponibilidad.horaDesde,
-                disponibilidad.horaHasta,
-                servicio.duracion //Revisar DC
-            )
-            // Por Dia Semana
-            for (let { inicio, fin } of slotsTurnosDisponible) {
-            
-                // Creamos la instancia pasandole 'inicio' (que va a valer '08:00', '08:30', etc.)
-                const turno = new Turno(
-                    medico, 
-                    null, 
-                    inicio, 
-                    null, 
-                    servicio, 
-                    EstadoTurno.DISPONIBLE, 
-                    null, 
-                    500, 
-                    null
+    /**
+     * Convierte minutos totales a string "HH:MM"
+     */
+    static minutosAHora(minutosTotales) {
+        const horas = Math.floor(minutosTotales / 60).toString().padStart(2, '0');
+        const minutos = (minutosTotales % 60).toString().padStart(2, '0');
+        return `${horas}:${minutos}`;
+    }
+
+    /**
+     * Genera los slots de tiempo para un rango horario y una duración de turno
+     * @returns Array de { inicio: "HH:MM", fin: "HH:MM" }
+     */
+    static generarSlotsPorRango(inicioStr, finStr, duracionMins) {
+        const slots = [];
+        let tiempoActual = Agenda.horaAMinutos(inicioStr);
+        const tiempoFin = Agenda.horaAMinutos(finStr);
+
+        while (tiempoActual + duracionMins <= tiempoFin) {
+            slots.push({
+                inicio: Agenda.minutosAHora(tiempoActual),
+                fin: Agenda.minutosAHora(tiempoActual + duracionMins)
+            });
+            tiempoActual += duracionMins;
+        }
+
+        return slots;
+    }
+
+    /**
+     * Genera turnos DISPONIBLES para un médico basado en sus disponibilidades
+     * @param {Object} medico - Documento del médico con disponibilidades populadas
+     * @param {Number} diasAdelante - Cuántos días a futuro generar
+     * @param {Map} serviciosMap - Map de servicioId -> { duracionTurnoEnMins, costoConsulta }
+     * @returns Array de objetos turno listos para insertar en la BD
+     */
+    static generarTurnosParaMedico(medico, diasAdelante, serviciosMap) {
+        const turnos = [];
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        for (let i = 1; i <= diasAdelante; i++) {
+            const fecha = new Date(hoy);
+            fecha.setDate(fecha.getDate() + i);
+            const diaSemanaJS = fecha.getDay(); // 0=Dom, 1=Lun...
+
+            // Buscar disponibilidades que coincidan con este día
+            for (const disponibilidad of medico.disponibilidades) {
+                const diaNumero = DiaSemanaNumero[disponibilidad.diaSemana];
+                if (diaNumero !== diaSemanaJS) continue;
+
+                const servicioInfo = serviciosMap.get(disponibilidad.servicio.toString());
+                if (!servicioInfo) continue;
+
+                const slots = Agenda.generarSlotsPorRango(
+                    disponibilidad.horaDesde,
+                    disponibilidad.horaHasta,
+                    servicioInfo.duracionTurnoEnMins
                 );
-            
-                turnos.push(turno);
+
+                // Obtener la sede de la disponibilidad o del médico
+                const sede = disponibilidad.sede || (medico.sedes && medico.sedes[0]) || null;
+
+                for (const slot of slots) {
+                    const [horaInicio, minInicio] = slot.inicio.split(':').map(Number);
+                    const fechaHora = new Date(fecha);
+                    fechaHora.setHours(horaInicio, minInicio, 0, 0);
+
+                    turnos.push({
+                        medico: medico._id,
+                        fechaHora: fechaHora,
+                        sede: sede,
+                        servicio: disponibilidad.servicio,
+                        servicioTipo: disponibilidad.servicioTipo,
+                        estado: EstadoTurno.DISPONIBLE,
+                        costo: servicioInfo.costoConsulta,
+                        historialEstados: [{
+                            fechaHoraDeIngreso: new Date(),
+                            estado: EstadoTurno.DISPONIBLE,
+                            usuario: medico.usuario,
+                            motivo: 'Generación automática de turno'
+                        }]
+                    });
+                }
             }
-       }
+        }
+
         return turnos;
     }
-
-    // Metodo 2: Especifico para practicas
-    generarTurnosPorPractica(practica, medico) {
-
-        let turnos;
-        if(medico.verificarPractica(practica)){
-            turnos = medico.identificarTurnos();
-        }
-
-        console.log(`Generando turnos para la practica '${practica}' con el Dr. ${medico.nombre} ` + turnos + "...");
-        // Aqui iria tu logica de creacion
-    }
-    // Metodo 3: Refrescar disponibilidad
-    refrescarTurnosSegunDisponibilidadDe(unMedico) {
-        const hoy = new Date();
-        
-
-        const eliminarTurnos = turnosExistentes.filter(turno =>
-            turno.medico.id === unMedico.id && turno.EstadoTurno === 'DISPONIBLE' && turno.fechaHora > hoy)
-
-        // esto incluye turnos pasados + reservados futuros
-        const conservarTurnos = turnosExistentes.filter(turno => !eliminarTurnos.includes(turno))
-
-        // Problema: como generar turnos sin superposicion de horarios
-        const nuevosTurnos = [...this.generarTurnosPorEspecialidad(servicio, unMedico)];
-
-
-        return {
-            eliminar: eliminarTurnos,
-            conservar: conservarTurnos
-            //nuevos: nuevosTurnos
-        }
-
-       // turnos = medico.identificarTurnos();
-        console.log(`Actualizando la agenda segun la disponibilidad del Dr. ${medico.nombre}` + turnos + "...");
-        // Logica para revisar los horarios del medico y habilitar/deshabilitar turnos
-    }
-    
 }
-
-
-
-
-//dejo estas funciones para emplearla despues en la generacion de turnos por slots o duracion
-
-
-/*
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    horaAMinutos = (horaStr) => {
-    const [horas, minutos] = horaStr.split(':').map(Number);
-     return horas * 60 + minutos;
-    };
-
-/**
- * Transforma minutos totales de vuelta a un string "HH:MM"
-
-    minutosAHora = (minutosTotales) => {
-    const horas = Math.floor(minutosTotales / 60).toString().padStart(2, '0');
-    const minutos = (minutosTotales % 60).toString().padStart(2, '0');
-    return `${horas}:${minutos}`;
-    };
-
-/*Genera el array de turnos posibles basados en un rango y una duracion*/
-
-
-    /* 
-    generarSlotsPorRango = (inicioStr, finStr, duracion) => {
-    const slots = [];
-    let tiempoActual = horaAMinutos(inicioStr);
-    const tiempoFin = horaAMinutos(finStr);
-
-    while (tiempoActual + duracion <= tiempoFin) {
-        slots.push({
-        inicio: minutosAHora(tiempoActual),
-        fin: minutosAHora(tiempoActual + duracion)
-    });
-    tiempoActual += duracion; // Saltamos al siguiente bloque
-    }
-
-    return slots;
-    };
-
-    */
-
-/*
-    enbaseaslotsgenerados(){
-        const turnosGenerados = this.generarSlotsPorRango(this.horaDesde, this.horaHasta, this.duracionTurno);
-        return turnosGenerados;
-    }
-*/

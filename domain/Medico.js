@@ -1,49 +1,40 @@
-import {Turno} from './Turno.js'
-import {Agenda} from './Agenda.js'
+export class Medico {
 
-
-export class Medico{
-    constructor(usuario,matricula,nombre,especialidades = [],practicas = [],sedes = [],disponibilidades = []){    
-        this.usuario = usuario;
-        this.matricula = matricula;
-        this.nombre = nombre;
-        this.especialidades = especialidades;
-        this.practicas = practicas;
-        this.sedes = sedes;
-        this.disponibilidades = disponibilidades;
-    }
-
-    // UNA DISPONIBILIDAD HORARIA POR DIA DE SEMANA
-    definirDisponibilidad(unaDisponibilidad){
-        const yaExiste = this.disponibilidades.findIndex(d => d.diaSemana === unaDisponibilidad.diaSemana);
-        if (yaExiste >= 0){
-        // Si ya tenía horario ese día, lo pisa
-        this.disponibilidades[yaExiste] = unaDisponibilidad;
+    // Define o actualiza una disponibilidad para un día de la semana
+    definirDisponibilidad(unaDisponibilidad) {
+        const yaExiste = this.disponibilidades.findIndex(
+            d => d.diaSemana === unaDisponibilidad.diaSemana && 
+                 d.servicio.toString() === unaDisponibilidad.servicio.toString()
+        );
+        if (yaExiste >= 0) {
+            this.disponibilidades[yaExiste] = unaDisponibilidad;
         } else {
-        // Si es un día nuevo, lo agrega
-        this.disponibilidades.push(unaDisponibilidad);
+            this.disponibilidades.push(unaDisponibilidad);
         }
     }
 
-
-    getNombre(){
-            return this.nombre;
-        }
-
-    verificarEspecialidad(unaEspecialidad){
-        this.especialidades.contains(unaEspecialidad);
+    // Verifica si el médico tiene una especialidad
+    verificarEspecialidad(especialidadId) {
+        return this.especialidades.some(
+            e => e.toString() === especialidadId.toString()
+        );
     }
 
-    verificarPractica(unaPractica){
-        this.especialidades.contains(unaPractica);
+    // Verifica si el médico tiene una práctica
+    verificarPractica(practicaId) {
+        return this.practicas.some(
+            p => p.toString() === practicaId.toString()
+        );
     }
 
-    identificarTurnos(){
-        return this.disponibilidades;
+    // Obtiene las disponibilidades filtradas por servicio
+    obtenerDisponibilidadPorServicio(servicioId) {
+        return this.disponibilidades.filter(
+            d => d.servicio.toString() === servicioId.toString()
+        );
     }
 
-    eliminarDisponibilidad(turno){
-        this.especialidades.delete(turno.date);
+    getNombre() {
+        return this.nombre;
     }
-    
 }

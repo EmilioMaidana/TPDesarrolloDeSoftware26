@@ -1,31 +1,54 @@
-export class Plan{
-    constructor(nombre, coberturasEspecialidad, coberturasPractica){
-        this.nombre = nombre;
-        this.coberturasEspecialidad = coberturasEspecialidad;
-        this.coberturasPractica = coberturasPractica;
+import { NivelCobertura } from './Enums.js';
+
+export class Plan {
+
+    obtenerCoberturaPorEspecialidad(especialidadId) {
+        const cobertura = this.coberturasEspecialidad.find(
+            c => c.especialidad.toString() === especialidadId.toString()
+        );
+        if (!cobertura) {
+            return { nivel: NivelCobertura.NO_CUBIERTA, porcentaje: 0 };
+        }
+        return { nivel: cobertura.nivel, porcentaje: cobertura.porcentaje || this._porcentajePorNivel(cobertura.nivel) };
     }
 
-    obtenerCoberturaPorEspecialidad(especialidad) {
-    const cobertura = this.coberturasEspecialidad.find(
-        c => c.especialidad === especialidad
-    );
-
-    if (!cobertura) {
-        return "NO_CUBIERTA";
+    obtenerCoberturaPorPractica(practicaId) {
+        const cobertura = this.coberturasPracticas.find(
+            c => c.practica.toString() === practicaId.toString()
+        );
+        if (!cobertura) {
+            return { nivel: NivelCobertura.NO_CUBIERTA, porcentaje: 0 };
+        }
+        return { nivel: cobertura.nivel, porcentaje: cobertura.porcentaje || this._porcentajePorNivel(cobertura.nivel) };
     }
 
-    return cobertura.nivel; //falta
-}
+    // Calcula el costo final dado un servicio y su tipo
+    calcularCosto(costoBase, servicioId, servicioTipo) {
+        let cobertura;
+        if (servicioTipo === 'Especialidad') {
+            cobertura = this.obtenerCoberturaPorEspecialidad(servicioId);
+        } else {
+            cobertura = this.obtenerCoberturaPorPractica(servicioId);
+        }
 
-    obtenerCoberturaPorPractica(practica) {
-    const cobertura = this.coberturasPractica.find(
-        c => c.practica === practica
-    );
+        const porcentajeCobertura = cobertura.porcentaje;
+        const costoFinal = costoBase * (1 - porcentajeCobertura / 100);
 
-    if (!cobertura) {
-        return "NO_CUBIERTA";
+        return {
+            nivelCobertura: cobertura.nivel,
+            porcentajeCobertura,
+            costoBase,
+            costoFinal: Math.round(costoFinal * 100) / 100
+        };
     }
 
-    return cobertura.nivelCobertura; //falta
-}
+    // Fallback si el porcentaje no está definido en la cobertura
+    _porcentajePorNivel(nivel) {
+        switch (nivel) {
+            case NivelCobertura.TOTAL: return 100;
+            case NivelCobertura.PARCIAL: return 50;
+            case NivelCobertura.NO_CUBIERTA: return 0;
+            default: return 0;
+        }
+    }
 }

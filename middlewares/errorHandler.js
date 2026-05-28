@@ -1,4 +1,4 @@
-import { AppError } from "../errors/AppError.js"
+import { AppError } from "../errors/AppErrors.js"
 
 export function errorHandler(err, req, res, next) {
     if (res.headersSent) {
@@ -10,6 +10,14 @@ export function errorHandler(err, req, res, next) {
             status: err.status,
             message: err.message,
             timestamp: err.timestamp,
+        })
+    }
+
+    if (err.name === 'CastError' && err.kind === 'ObjectId') {
+        return res.status(400).json({
+            status: "fail",
+            message: "ID proporcionado no es válido para MongoDB",
+            timestamp: new Date().toISOString(),
         })
     }
 

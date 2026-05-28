@@ -1,106 +1,203 @@
-import { Agenda } from "../domain/Agenda.js"
-import { Turno } from "../domain/Turno.js"
-import { diaSemana,
-        EstadoTurno,
-} from "../domain/Enums.js"
-import { Especialidad } from "../domain/especialidad.js"
-import {
-    BadRequestError,
-    ConflictError,
-    NotFoundError,
-    UnprocessableEntityError,
-    ValidationError
-} from "../errors/AppError.js"
-import { TurnoRepository } from "../repositories/TurnoRepository.js";
-import { Practica } from "../domain/practica.js";
+import { EstadoTurno } from "../domain/Enums.js";
+import { CotizadorService } from "../domain/CotizadorService.js";
+import { NotFoundError, BadRequestError, ConflictError } from "../errors/AppErrors.js";
 
 export class TurnoService {
-    
-    constructor(turnoRepository) {
-        this.turnoRepository = turnoRepository
+
+    constructor(turnoRepository, pacienteRepository, medicoRepository, notificacionRepository) {
+        this.turnoRepository = turnoRepository;
+        this.pacienteRepository = pacienteRepository;
+        this.medicoRepository = medicoRepository;
+        this.notificacionRepository = notificacionRepository;
     }
 
-    //Aca como mas nos guste podemos transformar el objeto a un DTO
-    toDTO(turno) {
+    // Buscar turnos disponibles con filtros, paginación y cotización para un paciente
+    async buscarDisponibles(filtros, pacienteId, page = 1, limit = 10, sortBy = 'fechaHora', order = 'asc') {
+        // Obtener paciente con su plan para cotización
+        const paciente = await this.pacienteRepository.findByIdConPlan(pacienteId);
+        if (!paciente) {
+            throw new NotFoundError('Paciente no encontrado');
+        }
+
+        // Buscar turnos disponibles
+        const resultado = await this.turnoRepository.buscarDisponibles(filtros, page, limit, sortBy, order);
+
+        // Cotizar cada turno según el plan del paciente
+        const turnosConCotizacion = CotizadorService.cotizarMuchos(resultado.turnos, paciente.plan);
+
+        // Si se ordena por costo, reordenar después de cotizar
+        if (sortBy === 'costo') {
+            turnosConCotizacion.sort((a, b) => {
+                const diff = a.cotizacion.costoFinal - b.cotizacion.costoFinal;
+                return order === 'desc' ? -diff : diff;
+            });
+        }
+
         return {
-            id: turno.id || turno._id, //validacion de if default de mongo
-            medico: turno.medico,
-            paciente: turno.paciente,
-            fechaHora: turno.fechaHora,
-            sede: turno.sede,
-            servicio: turno.servicio,
-            estado: turno.estado,
-            costo: turno.costo
+            turnos: turnosConCotizacion,
+            paginacion: resultado.paginacion
         };
     }
 
-    async findAll() {
-        const turnos = await this.turnoRepository.findAll();
-        return turnos.map(a => this.toDTO(a));
-    }
-
-    async create(data) {
-        const { medico, paciente, fechaHora, sede, servicio, estado, historialEstados, costo, eliminado } = data;
-
-        if (!medico || !paciente || !fechaHora || !sede || !servicio || !estado) {
-            throw new ValidationError('algunos campos estan mal cargados o faltan');
-        }
-
-        // Buscar si ya existe un turno para ese medico en esa fechaHora
-        const existente = await this.turnoRepository.findByMedicoAndFecha(medico, fechaHora);
-        if (existente) {
-            throw new ConflictError(`Ya existe un turno con este horario para este médico`);
-        }
-
-        const nuevo = new Turno(medico, paciente, fechaHora, sede, servicio, estado, historialEstados, costo, eliminado);
-        const turnoGuardado = await this.turnoRepository.save(nuevo);
-
-        return this.toDTO(turnoGuardado);
-    }
-
-    
-    async findById(id) {
-        const turno = await this.turnoRepository.findById(id);
+    // Obtener turno por ID
+    async obtenerPorId(id) {
+        const turno = await this.turnoRepository.findByIdPopulated(id);
         if (!turno) {
-            throw new NotFoundError("Turno no encontrado");
+            throw new NotFoundError('Turno no encontrado');
         }
-
-        return this.toDTO(turno);
+        return turno;
     }
-    
 
-    async update(id, data) {
-        const turno = await this.turnoRepository.findById(id);
+    // Reservar un turno (paciente)
+    async reservar(turnoId, pacienteId) {
+        const turno = await this.turnoRepository.findById(turnoId);
         if (!turno) {
-            throw new NotFoundError("Turno no encontrado");
+            throw new NotFoundError('Turno no encontrado');
         }
 
-        if (data.nombre !== undefined) turno.nombre = data.nombre;
-        //fijarse los datos correctos a actualizar segun el modelo
-        //if (data.precioPorNoche !== undefined) turno.precioPorNoche = data.precioPorNoche;
+        const paciente = await this.pacienteRepository.findById(pacienteId);
+        if (!paciente) {
+            throw new NotFoundError('Paciente no encontrado');
+        }
 
-        const actualizado = await this.turnoRepository.save(turno);
-        return this.toDTO(actualizado);
+        // Usar lógica de dominio
+        turno.reservar(pacienteId, pacienteId);
+        await turno.save();
+
+        // Notificar al médico
+        const medico = await this.medicoRepository.findById(turno.medico);
+        if (medico) {
+            await this.notificacionRepository.save({
+                destinatario: medico.usuario,
+                remitente: pacienteId,
+                mensaje: `El paciente ${paciente.nombre} ha reservado un turno para ${new Date(turno.fechaHora).toLocaleString('es-AR')}`
+            });
+        }
+
+        return turno;
     }
 
-    async delete(id) {
-        const turno = await this.turnoRepository.findById(id);
+    // Cancelar un turno (paciente o médico)
+    async cancelar(turnoId, usuarioId, motivo, esMedico = false) {
+        const turno = await this.turnoRepository.findByIdPopulated(turnoId);
         if (!turno) {
-            throw new NotFoundError("Turno no encontrado");
+            throw new NotFoundError('Turno no encontrado');
         }
-        await this.turnoRepository.delete(id);
-        return this.toDTO(turno);
+
+        // Usar lógica de dominio
+        turno.cancelar(usuarioId, motivo);
+        await turno.save();
+
+        // Notificar a la contraparte
+        if (esMedico && turno.paciente) {
+            // Médico cancela -> notificar al paciente
+            await this.notificacionRepository.save({
+                destinatario: turno.paciente._id || turno.paciente,
+                remitente: usuarioId,
+                mensaje: `Tu turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')} fue cancelado por el médico. Motivo: ${motivo}`
+            });
+        } else if (!esMedico && turno.medico) {
+            // Paciente cancela -> notificar al médico
+            const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
+            if (medico) {
+                await this.notificacionRepository.save({
+                    destinatario: medico.usuario,
+                    remitente: usuarioId,
+                    mensaje: `Un paciente ha cancelado su turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')}. Motivo: ${motivo}`
+                });
+            }
+        }
+
+        return turno;
     }
 
-    //GET ALL PAGINADO
-    async findAllPaginated(page, limit) {
-        return await this.turnoRepository
-            .findAllPaginated(page, limit)
+    // Marcar turno como realizado (médico)
+    async marcarRealizado(turnoId, medicoId) {
+        const turno = await this.turnoRepository.findById(turnoId);
+        if (!turno) {
+            throw new NotFoundError('Turno no encontrado');
+        }
+
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Médico no encontrado');
+        }
+
+        // Verificar que el turno pertenece al médico
+        if (turno.medico.toString() !== medicoId.toString()) {
+            throw new BadRequestError('Este turno no pertenece al médico indicado');
+        }
+
+        turno.marcarRealizado(medico.usuario);
+        await turno.save();
+
+        return turno;
     }
 
-    //SOFT DELETE
-    async softDelete(id) {
-        return await this.turnoRepository
-            .softDelete(id)
+    // Proponer reprogramación de fecha
+    async proponerReprogramacion(turnoId, nuevaFecha, usuarioId) {
+        const turno = await this.turnoRepository.findByIdPopulated(turnoId);
+        if (!turno) {
+            throw new NotFoundError('Turno no encontrado');
+        }
+
+        turno.proponerCambioFecha(new Date(nuevaFecha), usuarioId);
+        await turno.save();
+
+        // Notificar a la contraparte
+        const mensaje = `Se ha propuesto un cambio de fecha para tu turno al ${new Date(nuevaFecha).toLocaleString('es-AR')}. Requiere confirmación.`;
+
+        // Determinar a quién notificar
+        if (turno.paciente) {
+            const destinatarioPaciente = turno.paciente._id || turno.paciente;
+            await this.notificacionRepository.save({
+                destinatario: destinatarioPaciente,
+                remitente: usuarioId,
+                mensaje
+            });
+        }
+        if (turno.medico) {
+            const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
+            if (medico) {
+                await this.notificacionRepository.save({
+                    destinatario: medico.usuario,
+                    remitente: usuarioId,
+                    mensaje
+                });
+            }
+        }
+
+        return turno;
+    }
+
+    // Confirmar reprogramación
+    async confirmarReprogramacion(turnoId, usuarioId) {
+        const turno = await this.turnoRepository.findById(turnoId);
+        if (!turno) {
+            throw new NotFoundError('Turno no encontrado');
+        }
+
+        turno.confirmarCambioFecha(usuarioId);
+        await turno.save();
+
+        return turno;
+    }
+
+    // Historial de turnos de un paciente
+    async obtenerHistorialPaciente(pacienteId) {
+        const paciente = await this.pacienteRepository.findById(pacienteId);
+        if (!paciente) {
+            throw new NotFoundError('Paciente no encontrado');
+        }
+        return await this.turnoRepository.findByPaciente(pacienteId);
+    }
+
+    // Historial de un paciente visto por un médico
+    async obtenerHistorialPacienteParaMedico(medicoId, pacienteId) {
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Médico no encontrado');
+        }
+        return await this.turnoRepository.findByMedicoAndPaciente(medicoId, pacienteId);
     }
 }

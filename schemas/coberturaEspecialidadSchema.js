@@ -16,6 +16,13 @@ export const coberturaEspecialidadSchema = new mongoose.Schema({
     required: true,
   },
 
+  porcentaje: {
+    type: Number,
+    min: 0,
+    max: 100,
+    default: null,
+  },
+
 },
 {
   _id: false,

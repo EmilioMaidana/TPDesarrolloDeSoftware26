@@ -1,36 +1,77 @@
-import { Agenda } from "../domain/Agenda.js"
-import { Turno } from "../domain/Turno.js"
-import { diaSemana,
-        EstadoTurno,
-} from "../domain/Enums.js"
-import { Especialidad } from "../domain/especialidad.js"
-import {
-    BadRequestError,
-    ConflictError,
-    NotFoundError,
-    UnprocessableEntityError
-} from "../errors/AppError.js"
-import { TurnoRepository } from "../repositories/TurnoRepository.js";
-import { Practica } from "../domain/practica.js";
+import { NotFoundError, BadRequestError } from "../errors/AppErrors.js";
+import { Agenda } from "../domain/Agenda.js";
 
-export class disponibilidadService {
-    
-    constructor(disponibilidadRepository) {
-        this.disponibilidadRepository = disponibilidadRepository
+export class DisponibilidadService {
+
+    constructor(medicoRepository, turnoRepository, servicioRepository) {
+        this.medicoRepository = medicoRepository;
+        this.turnoRepository = turnoRepository;
+        this.servicioRepository = servicioRepository;
     }
 
-     //Aca como mas nos guste podemos transformar el objeto a un DTO
-    toDTO(disponibilidad) {
-        return {
-            id: disponibilidad.id || disponibilidad._id, //validacion de if default de mongo
-            nombre: disponibilidad.nombre,
+    // Consultar disponibilidad de un médico
+    async consultarDisponibilidad(medicoId, servicioId = null) {
+        const medico = await this.medicoRepository.findByIdPopulated(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Médico no encontrado');
         }
-    
+
+        if (servicioId) {
+            return medico.disponibilidades.filter(
+                d => d.servicio.toString() === servicioId.toString()
+            );
+        }
+
+        return medico.disponibilidades;
     }
 
-    async findAll() {
-        const disponibilidades = await this.disponibilidadRepository.findAll();
-        return disponibilidades.map(a => this.toDTO(a));
+    // Actualizar disponibilidad de un médico
+    async actualizarDisponibilidad(medicoId, nuevasDisponibilidades) {
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Médico no encontrado');
+        }
+
+        // Actualizar las disponibilidades del médico
+        await this.medicoRepository.actualizarDisponibilidad(medicoId, nuevasDisponibilidades);
+
+        // Eliminar turnos futuros DISPONIBLES y regenerar
+        await this.turnoRepository.eliminarDisponiblesFuturos(medicoId);
+
+        // Regenerar turnos con las nuevas disponibilidades
+        const medicoActualizado = await this.medicoRepository.findById(medicoId);
+        const diasAdelante = parseInt(process.env.BATCH_DAYS_AHEAD) || 14;
+
+        // Obtener info de los servicios
+        const serviciosMap = new Map();
+        for (const disp of medicoActualizado.disponibilidades) {
+            if (!serviciosMap.has(disp.servicio.toString())) {
+                const servicio = await this.servicioRepository.findServicioById(disp.servicioTipo, disp.servicio);
+                if (servicio) {
+                    serviciosMap.set(disp.servicio.toString(), {
+                        duracionTurnoEnMins: servicio.duracionTurnoEnMins,
+                        costoConsulta: servicio.costoConsulta
+                    });
+                }
+            }
+        }
+
+        const nuevosTurnos = Agenda.generarTurnosParaMedico(medicoActualizado, diasAdelante, serviciosMap);
+
+        if (nuevosTurnos.length > 0) {
+            // Filtrar turnos que no colisionen con reservados existentes
+            const turnosFiltrados = [];
+            for (const turno of nuevosTurnos) {
+                const existe = await this.turnoRepository.existeTurnoEnHorario(turno.medico, turno.fechaHora);
+                if (!existe) {
+                    turnosFiltrados.push(turno);
+                }
+            }
+            if (turnosFiltrados.length > 0) {
+                await this.turnoRepository.insertMany(turnosFiltrados);
+            }
+        }
+
+        return medicoActualizado.disponibilidades;
     }
-    
 }

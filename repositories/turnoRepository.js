@@ -1,108 +1,137 @@
-import { Turno } from "../domain/Turno.js"
-import { Constants } from "../domain/Enums.js"
-import { diaSemana,
-        EstadoTurno,
-} from "../domain/Enums.js"
-import {
-    BadRequestError,
-    NotFoundError,
-    UnprocessableEntityError
-} from "../errors/AppError.js"
-import { TurnoModel } from "../schemas/TurnoSchema.js";
-
+import { TurnoModel } from "../schemas/turnoSchema.js";
+import { EstadoTurno } from "../domain/Enums.js";
 
 export class TurnoRepository {
-    constructor(){
-        this.model = turnoModel
-    }
 
     async findAll() {
-        return this.model.find()
-    }
-
-    async findByName(nombre) {
-        return await this.model.findOne({nombre})
-    }
-
-    async save(turno) {
-        const nuevoTurno = new this.model(turno)
-        return await nuevoTurno.save()
+        return await TurnoModel.find({ eliminado: false });
     }
 
     async findById(id) {
-        return await this.model.findById(id)
+        return await TurnoModel.findOne({ _id: id, eliminado: false });
     }
 
-    async update(id, turnoModificado) {
-        return await this.model.findByIdAndUpdate(id, turnoModificado, { new: true })
+    async findByIdPopulated(id) {
+        return await TurnoModel.findOne({ _id: id, eliminado: false })
+            .populate('medico')
+            .populate('paciente')
+            .populate('servicio');
     }
 
-    async delete(id) {
-        return await this.model.findByIdAndDelete(id)
+    async save(turnoData) {
+        const turno = new TurnoModel(turnoData);
+        return await turno.save();
     }
-    
-    async contar(){
-        return await this.model.countDocuments()
+
+    async update(id, data) {
+        return await TurnoModel.findByIdAndUpdate(id, data, { new: true, runValidators: true });
     }
 
     async softDelete(id) {
-        return await this.model.findByIdAndUpdate(id, 
-            { 
-                estado: Constants.ESTADO_INACTIVO 
-            },
-            { 
-                new: true 
-            })
+        return await TurnoModel.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 
-    async findAllPaginated(page = 1, limit=5) {
-        const skipN = (page - 1) * limit
-        
-        const turnos = await this.model.find({estado: Constants.ESTADO_INACTIVO}).skip(skipN).limit(limit)
+    async findByMedicoAndFecha(medicoId, fechaHora) {
+        return await TurnoModel.findOne({
+            medico: medicoId,
+            fechaHora: fechaHora,
+            eliminado: false,
+            estado: { $ne: EstadoTurno.CANCELADO }
+        });
+    }
 
-        const total = await this.model.countDocuments({estado: Constants.ESTADO_INACTIVO})
+    // Búsqueda de turnos disponibles con filtros, paginación y ordenamiento
+    async buscarDisponibles({ medicoId, especialidadId, practicaId, sede, fechaInicio, fechaFin } = {}, page = 1, limit = 10, sortBy = 'fechaHora', order = 'asc') {
+        const filtro = {
+            estado: EstadoTurno.DISPONIBLE,
+            eliminado: false
+        };
 
-        return {page, limit, turnos, total: Math.ceil(total / limit)}
+        if (medicoId) filtro.medico = medicoId;
+        if (especialidadId) {
+            filtro.servicio = especialidadId;
+            filtro.servicioTipo = 'Especialidad';
+        }
+        if (practicaId) {
+            filtro.servicio = practicaId;
+            filtro.servicioTipo = 'Practica';
+        }
+        if (sede) filtro['sede.nombre'] = { $regex: sede, $options: 'i' };
+        if (fechaInicio || fechaFin) {
+            filtro.fechaHora = {};
+            if (fechaInicio) filtro.fechaHora.$gte = new Date(fechaInicio);
+            if (fechaFin) filtro.fechaHora.$lte = new Date(fechaFin);
+        }
+
+        const sortOrder = order === 'desc' ? -1 : 1;
+        const sortObj = {};
+        sortObj[sortBy] = sortOrder;
+
+        const skip = (page - 1) * limit;
+
+        const [turnos, total] = await Promise.all([
+            TurnoModel.find(filtro)
+                .populate('medico', 'nombre matricula especialidades practicas')
+                .populate('servicio')
+                .sort(sortObj)
+                .skip(skip)
+                .limit(limit),
+            TurnoModel.countDocuments(filtro)
+        ]);
+
+        return {
+            turnos,
+            paginacion: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
+
+    // Historial de turnos de un paciente
+    async findByPaciente(pacienteId) {
+        return await TurnoModel.find({ paciente: pacienteId, eliminado: false })
+            .populate('medico', 'nombre matricula')
+            .populate('servicio')
+            .sort({ fechaHora: -1 });
+    }
+
+    // Historial de turnos de un paciente visto por un médico
+    async findByMedicoAndPaciente(medicoId, pacienteId) {
+        return await TurnoModel.find({
+            medico: medicoId,
+            paciente: pacienteId,
+            eliminado: false
+        })
+            .populate('servicio')
+            .sort({ fechaHora: -1 });
+    }
+
+    // Eliminar turnos DISPONIBLES futuros de un médico (para regeneración batch)
+    async eliminarDisponiblesFuturos(medicoId) {
+        const ahora = new Date();
+        return await TurnoModel.deleteMany({
+            medico: medicoId,
+            estado: EstadoTurno.DISPONIBLE,
+            fechaHora: { $gt: ahora },
+            eliminado: false
+        });
+    }
+
+    // Bulk insert para el batch
+    async insertMany(turnos) {
+        return await TurnoModel.insertMany(turnos);
+    }
+
+    // Verificar si ya existe un turno para un médico en una fecha/hora
+    async existeTurnoEnHorario(medicoId, fechaHora) {
+        return await TurnoModel.findOne({
+            medico: medicoId,
+            fechaHora: fechaHora,
+            estado: { $in: [EstadoTurno.DISPONIBLE, EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO] },
+            eliminado: false
+        });
     }
 }
-
-/*
-
-async save(reserva) {
- const query = reserva.id ? { _id: reserva.id } : {_id: new this.model()._id }
-
- return await this.model.findOneAndUpdate(query, reserva, 
-    { new: true, runValidators: true, upsert: true })
-
-asysnc reservasPorAlojamiento() {
-    return await this.model.aggregate([
-        {
-            $group: {
-                _id: "$alojamiento",
-                totalReservas:{ 
-                $sum: 1 
-                }
-            }
-        },
-        {
-            $lookup: {
-                from: "alojamientos",
-                localField: "_id",
-                foreignField: "_id",
-                as: "alojamiento"
-
-            }
-        },
-        {
-            $unwind: "$alojamiento"
-        },
-        {
-            $project: {
-                _id: 0,
-                alojamiento: "$alojamiento.nombre",
-                totalReservas: 1
-            }
-        }
-    ])}
-
-*/ 

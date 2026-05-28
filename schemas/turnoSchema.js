@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 import { EstadoTurno } from "../domain/Enums.js";
-import { cambioEstadoTurnoSchema } from "./CambioEstadoTurnoSchema.js";
+import { cambioEstadoTurnoSchema } from "./cambioEstadoTurnoSchema.js";
 import { Turno as TurnoClass } from "../domain/Turno.js";
 
 const turnoSchema = new mongoose.Schema({
@@ -56,6 +56,15 @@ const turnoSchema = new mongoose.Schema({
     min: 0,
   },
 
+  motivoCancelacion: {
+    type: String,
+    trim: true,
+  },
+
+  fechaPropuesta: {
+    type: Date,
+  },
+
   eliminado: {
     type: Boolean,
     default: false,
@@ -68,14 +77,16 @@ const turnoSchema = new mongoose.Schema({
   collection: "turnos",
 });
 
+// Índices para búsquedas eficientes
+turnoSchema.index({ medico: 1, fechaHora: 1 });
+turnoSchema.index({ estado: 1, fechaHora: 1 });
+turnoSchema.index({ paciente: 1 });
+turnoSchema.index({ servicio: 1 });
+
 turnoSchema.loadClass(TurnoClass);
 
 turnoSchema.set("toJSON", {
   versionKey: false,
 });
 
-export const TurnoModel =
-mongoose.model(
-  "Turno",
-  turnoSchema
-);
+export const TurnoModel = mongoose.model("Turno", turnoSchema);

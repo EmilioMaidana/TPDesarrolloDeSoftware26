@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 import { EstadoTurno } from "../domain/Enums.js";
 
-export const cambioEstadoTurnoSchema =
-new mongoose.Schema({
+export const cambioEstadoTurnoSchema = new mongoose.Schema({
 
   fechaHoraDeIngreso: {
     type: Date,
