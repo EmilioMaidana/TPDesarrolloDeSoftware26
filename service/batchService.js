@@ -48,7 +48,7 @@ export class BatchService {
                 totalGenerados += turnosFiltrados.length;
             }
 
-            console.log(`Médico ${medico.nombre}: ${turnosFiltrados.length} turnos generados`);
+            console.log(`Medico ${medico.nombre}: ${turnosFiltrados.length} turnos generados`);
         }
 
         console.log(`Total de turnos generados: ${totalGenerados}`);

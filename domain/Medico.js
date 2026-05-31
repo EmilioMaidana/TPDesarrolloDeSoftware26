@@ -1,6 +1,6 @@
 export class Medico {
 
-    // Define o actualiza una disponibilidad para un día de la semana
+    // Define o actualiza una disponibilidad para un dia de la semana
     definirDisponibilidad(unaDisponibilidad) {
         const yaExiste = this.disponibilidades.findIndex(
             d => d.diaSemana === unaDisponibilidad.diaSemana && 

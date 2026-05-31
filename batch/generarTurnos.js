@@ -11,7 +11,7 @@ import { ServicioRepository } from '../repositories/servicioRepository.js';
 import { BatchService } from '../service/batchService.js';
 
 async function runBatch() {
-    console.log(`[${new Date().toISOString()}] Iniciando proceso batch de generación de turnos...`);
+    console.log(`[${new Date().toISOString()}] Iniciando proceso batch de generacion de turnos...`);
 
     try {
         await MongoDBClient.connect();
@@ -39,7 +39,7 @@ if (process.argv[1] && process.argv[1].includes('generarTurnos.js')) {
     runBatch().then(() => process.exit(0));
 }
 
-// Programar para que corra todos los días a las 00:00
+// Programar para que corra todos los dias a las 00:00
 cron.schedule('0 0 * * *', () => {
     runBatch();
 });

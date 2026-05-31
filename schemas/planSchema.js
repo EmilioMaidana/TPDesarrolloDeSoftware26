@@ -34,7 +34,7 @@ const planSchema = new mongoose.Schema({
   collection: "planes",
 });
 
-// CARGA MÉTODOS DE LA CLASE
+// CARGA METODOS DE LA CLASE
 planSchema.loadClass(PlanClass);
 
 planSchema.set("toJSON", {

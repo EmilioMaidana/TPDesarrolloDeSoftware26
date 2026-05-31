@@ -47,12 +47,16 @@ export class ServicioRepository {
         return await PracticaModel.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 
-    // Genérico: buscar servicio por tipo e ID
     async findServicioById(tipo, id) {
         if (tipo === 'Especialidad') {
             return await this.findEspecialidadById(id);
-        } else {
+        }
+
+        if (tipo === 'Practica') {
             return await this.findPracticaById(id);
         }
+
+        return null;
     }
+
 }

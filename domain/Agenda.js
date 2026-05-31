@@ -75,8 +75,15 @@ export class Agenda {
 
                 for (const slot of slots) {
                     const [horaInicio, minInicio] = slot.inicio.split(':').map(Number);
-                    const fechaHora = new Date(fecha);
-                    fechaHora.setHours(horaInicio, minInicio, 0, 0);
+                    const fechaHora = new Date(Date.UTC(
+                        fecha.getFullYear(),
+                        fecha.getMonth(),
+                        fecha.getDate(),
+                        horaInicio,
+                        minInicio,
+                        0,
+                        0
+                    ));
 
                     turnos.push({
                         medico: medico._id,

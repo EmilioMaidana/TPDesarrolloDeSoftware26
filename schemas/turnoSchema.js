@@ -77,16 +77,13 @@ const turnoSchema = new mongoose.Schema({
   collection: "turnos",
 });
 
-// Índices para búsquedas eficientes
+// indices para busquedas eficientes
 turnoSchema.index({ medico: 1, fechaHora: 1 });
 turnoSchema.index({ estado: 1, fechaHora: 1 });
 turnoSchema.index({ paciente: 1 });
 turnoSchema.index({ servicio: 1 });
 
-turnoSchema.loadClass(TurnoClass);
+turnoSchema.loadClass(TurnoClass);// carga los metodos que usa tiene turno
 
-turnoSchema.set("toJSON", {
-  versionKey: false,
-});
 
 export const TurnoModel = mongoose.model("Turno", turnoSchema);

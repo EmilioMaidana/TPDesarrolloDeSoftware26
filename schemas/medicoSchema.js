@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { disponibilidadHorariaSchema } from "./disponibilidadHorariaSchema.js";
 import { sedeSchema } from "./sedeSchema.js";
+import "./usuarioSchema.js";
 import { Medico as MedicoClass } from "../domain/Medico.js";
 
 const medicoSchema = new mongoose.Schema({
@@ -22,7 +23,7 @@ const medicoSchema = new mongoose.Schema({
   nombre: {
     type: String,
     required: true,
-    trim: true,
+    trim: true,// elimina los espacios de comienzo y fin de los string
   },
 
   especialidades: {
@@ -59,13 +60,13 @@ const medicoSchema = new mongoose.Schema({
 },
 
 {
-  timestamps: true,
+  timestamps: true,// cuando se crea guarda la fecha
   collection: "medicos",
 });
 
 medicoSchema.loadClass(MedicoClass);
 
-medicoSchema.set("toJSON", {
+medicoSchema.set("toJSON", {// cuando se actualiza no implementa el versionado
   versionKey: false,
 });
 

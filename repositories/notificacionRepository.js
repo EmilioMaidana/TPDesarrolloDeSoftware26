@@ -32,4 +32,5 @@ export class NotificacionRepository {
             { new: true }
         );
     }
+    
 }

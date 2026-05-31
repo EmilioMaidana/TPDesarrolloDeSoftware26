@@ -5,6 +5,7 @@ export function createNotificacionRoutes(notificacionController) {
 
     /**
      * @swagger
+     * /api/usuarios/:{usuarioId}/notificaciones/?leidas=true|false:
      * /api/notificaciones/no-leidas/{usuarioId}:
      *   get:
      *     summary: Obtener notificaciones no leídas de un usuario
@@ -23,6 +24,7 @@ export function createNotificacionRoutes(notificacionController) {
     /**
      * @swagger
      * /api/notificaciones/leidas/{usuarioId}:
+     * /api/usuarios/:{usuarioId}/notificaciones/?leidas=true|false:
      *   get:
      *     summary: Obtener notificaciones leídas de un usuario
      *     tags: [Notificaciones]
@@ -53,6 +55,6 @@ export function createNotificacionRoutes(notificacionController) {
      *         description: Notificación marcada como leída
      */
     router.patch('/:id/leer', (req, res, next) => notificacionController.marcarComoLeida(req, res, next));
-
+    //cambiar por put o post lectura notificacion/:id/lectura
     return router;
 }

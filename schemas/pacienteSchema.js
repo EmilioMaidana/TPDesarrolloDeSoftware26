@@ -1,8 +1,16 @@
 import mongoose from "mongoose";
 
 import { Paciente as PacienteClass } from "../domain/Paciente.js";
+import "./usuarioSchema.js";
 
 const pacienteSchema = new mongoose.Schema({
+
+   usuario: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Usuario",
+    required: true,
+  },
+  
 
   dni: {
     type: String,

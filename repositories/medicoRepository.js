@@ -40,6 +40,14 @@ export class MedicoRepository {
         );
     }
 
+    async agregarDisponibilidad(id, disponibilidad) {
+        return await MedicoModel.findByIdAndUpdate(
+            id,
+            { $push: { disponibilidades: disponibilidad } },
+            { new: true, runValidators: true }
+        );
+    }
+
     async agregarServicio(medicoId, tipo, servicioId) {
         const campo = tipo === 'Especialidad' ? 'especialidades' : 'practicas';
         return await MedicoModel.findByIdAndUpdate(

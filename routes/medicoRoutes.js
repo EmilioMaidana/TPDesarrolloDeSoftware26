@@ -7,7 +7,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      * @swagger
      * /api/medicos/{medicoId}/disponibilidad:
      *   get:
-     *     summary: Consultar disponibilidad horaria de un médico
+     *     summary: Consultar disponibilidad horaria de un medico
      *     tags: [Médicos]
      *     parameters:
      *       - in: path
@@ -17,7 +17,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      *       - in: query
      *         name: servicioId
      *         schema: { type: string }
-     *         description: Filtrar por especialidad o práctica específica
+     *         description: Filtrar por especialidad o practica especifica
      *     responses:
      *       200:
      *         description: Lista de disponibilidades horarias
@@ -27,8 +27,43 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
     /**
      * @swagger
      * /api/medicos/{medicoId}/disponibilidad:
+     *   post:
+     *     summary: Crear una disponibilidad horaria para un medico
+     *     tags: [Médicos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required: [diaSemana, horaDesde, horaHasta, servicio, servicioTipo]
+     *             properties:
+     *               diaSemana: { type: string, enum: [LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO] }
+     *               horaDesde: { type: string, example: "08:00" }
+     *               horaHasta: { type: string, example: "12:00" }
+     *               servicio: { type: string, description: ID de la especialidad o practica }
+     *               servicioTipo: { type: string, enum: [Especialidad, Practica] }
+     *               sede:
+     *                 type: object
+     *                 properties:
+     *                   nombre: { type: string }
+     *                   direccion: { type: string }
+     *     responses:
+     *       201:
+     *         description: Disponibilidad creada y turnos generados
+     */
+    router.post('/:medicoId/disponibilidad', (req, res, next) => disponibilidadController.crearDisponibilidad(req, res, next));
+
+    /**
+     * @swagger
+     * /api/medicos/{medicoId}/disponibilidad:
      *   put:
-     *     summary: Actualizar disponibilidad horaria de un médico
+     *     summary: Actualizar disponibilidad horaria de un medico
      *     tags: [Médicos]
      *     parameters:
      *       - in: path
@@ -51,7 +86,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      *                     diaSemana: { type: string, enum: [LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO] }
      *                     horaDesde: { type: string, example: "08:00" }
      *                     horaHasta: { type: string, example: "12:00" }
-     *                     servicio: { type: string, description: ID de la especialidad o práctica }
+     *                     servicio: { type: string, description: ID de la especialidad o practica }
      *                     servicioTipo: { type: string, enum: [Especialidad, Practica] }
      *                     sede: { type: object, properties: { nombre: { type: string }, direccion: { type: string } } }
      *     responses:
@@ -64,7 +99,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      * @swagger
      * /api/medicos/{medicoId}/servicios:
      *   get:
-     *     summary: Listar servicios (especialidades y prácticas) de un médico
+     *     summary: Listar servicios (especialidades y practicas) de un medico
      *     tags: [Servicios]
      *     parameters:
      *       - in: path
@@ -73,7 +108,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      *         schema: { type: string }
      *     responses:
      *       200:
-     *         description: Especialidades y prácticas del médico
+     *         description: Especialidades y practicas del medico
      */
     router.get('/:medicoId/servicios', (req, res, next) => servicioController.listarServiciosDeMedico(req, res, next));
 
@@ -81,7 +116,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      * @swagger
      * /api/medicos/{medicoId}/servicios:
      *   post:
-     *     summary: Agregar un servicio a un médico
+     *     summary: Agregar un servicio a un medico
      *     tags: [Servicios]
      *     parameters:
      *       - in: path
@@ -108,7 +143,7 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      * @swagger
      * /api/medicos/{medicoId}/servicios/{servicioId}:
      *   delete:
-     *     summary: Quitar un servicio de un médico
+     *     summary: Quitar un servicio de un medico
      *     tags: [Servicios]
      *     parameters:
      *       - in: path
