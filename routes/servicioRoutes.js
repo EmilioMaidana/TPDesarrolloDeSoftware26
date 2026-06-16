@@ -44,6 +44,20 @@ export function createServicioRoutes(servicioController) {
      *         name: id
      *         required: true
      *         schema: { type: string }
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               nombre: { type: string }
+     *               duracionTurnoEnMins: { type: integer }
+     *               costoConsulta: { type: number }
+     *             example:
+     *               nombre: Cardiología
+     *               duracionTurnoEnMins: 30
+     *               costoConsulta: 32000
      *     responses:
      *       200:
      *         description: Especialidad actualizada
@@ -104,6 +118,22 @@ export function createServicioRoutes(servicioController) {
      *         name: id
      *         required: true
      *         schema: { type: string }
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               codigo: { type: string }
+     *               nombre: { type: string }
+     *               duracionTurnoEnMins: { type: integer }
+     *               costoConsulta: { type: number }
+     *             example:
+     *               codigo: P001
+     *               nombre: Electrocardiograma
+     *               duracionTurnoEnMins: 15
+     *               costoConsulta: 12000
      *     responses:
      *       200:
      *         description: Práctica actualizada
