@@ -2,24 +2,36 @@ import { NivelCobertura } from './Enums.js';
 
 export class Plan {
 
+    _normalizarId(referencia) {
+        return (referencia && referencia._id ? referencia._id : referencia).toString();
+    }
+
     obtenerCoberturaPorEspecialidad(especialidadId) {
+        const idBuscado = this._normalizarId(especialidadId);
         const cobertura = this.coberturasEspecialidad.find(
-            c => c.especialidad.toString() === especialidadId.toString()
+            c => this._normalizarId(c.especialidad) === idBuscado
         );
         if (!cobertura) {
             return { nivel: NivelCobertura.NO_CUBIERTA, porcentaje: 0 };
         }
-        return { nivel: cobertura.nivel, porcentaje: cobertura.porcentaje || this._porcentajePorNivel(cobertura.nivel) };
+        // Soporta tanto 'porcentaje' (schema) como 'porcentajeCobertura' (datos MongoDB legacy)
+        const porcentaje = cobertura.porcentaje ?? cobertura.porcentajeCobertura ?? this._porcentajePorNivel(cobertura.nivel);
+        const nivel = cobertura.nivel ?? this._nivelPorPorcentaje(porcentaje);
+        return { nivel, porcentaje };
     }
 
     obtenerCoberturaPorPractica(practicaId) {
+        const idBuscado = this._normalizarId(practicaId);
         const cobertura = this.coberturasPracticas.find(
-            c => c.practica.toString() === practicaId.toString()
+            c => this._normalizarId(c.practica) === idBuscado
         );
         if (!cobertura) {
             return { nivel: NivelCobertura.NO_CUBIERTA, porcentaje: 0 };
         }
-        return { nivel: cobertura.nivel, porcentaje: cobertura.porcentaje || this._porcentajePorNivel(cobertura.nivel) };
+        // Soporta tanto 'porcentaje' (schema) como 'porcentajeCobertura' (datos MongoDB legacy)
+        const porcentaje = cobertura.porcentaje ?? cobertura.porcentajeCobertura ?? this._porcentajePorNivel(cobertura.nivel);
+        const nivel = cobertura.nivel ?? this._nivelPorPorcentaje(porcentaje);
+        return { nivel, porcentaje };
     }
 
     // Calcula el costo final dado un servicio y su tipo
@@ -50,5 +62,12 @@ export class Plan {
             case NivelCobertura.NO_CUBIERTA: return 0;
             default: return 0;
         }
+    }
+
+    // Infiere el nivel de cobertura a partir del porcentaje (para datos legacy sin campo 'nivel')
+    _nivelPorPorcentaje(porcentaje) {
+        if (porcentaje === null || porcentaje === undefined || porcentaje === 0) return NivelCobertura.NO_CUBIERTA;
+        if (porcentaje >= 100) return NivelCobertura.TOTAL;
+        return NivelCobertura.PARCIAL;
     }
 }

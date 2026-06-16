@@ -1,51 +1,99 @@
 import { Notificacion } from "./Notificacion.js";
-import { Turno } from "./Turno.js";
 
-export class FactoryNotification{ 
-    crearSegunEstadoTurno(turno){
-        return new Notificacion(turno.paciente, turno.medico,`Su turno fue ${turno.estado}`);
-    }
-    
-    //Al reservar un turno, se notifica al médico indicando paciente y servicio solicitado (especialidad o práctica).
-    
-    crearSegunTurnoReservado(turno){
-        return new Notificacion(turno.paciente, turno.medico,`Tenes un turno por aceptar con el paciente ${turno.paciente} de ${turno.servicio.nombre}`);
-    }
+/**
+ * Fabrica de notificaciones segun el evento del ciclo de vida de un turno.
+ * Centraliza el armado del mensaje y resuelve quien es el destinatario y el
+ * remitente correcto en cada caso (ver reglas de la Entrega 1).
+ */
+export class FactoryNotification {
 
-    //Al aceptar un turno, se notifica al paciente.
-
-    crearSegunAceptacion(turno){
-        return new Notificacion(turno.medico, turno.paciente, `Tu turno de ${turno.servicio.nombre} ha sido ${turno.estado} por el medico ${turno.medico}`);
-    }
-    
-    //Ante cancelaciones de turnos, se notifica a la contraparte correspondiente.
-    
-    crearSegunCancelacionMedico(turno){
-        return new Notificacion(turno.medico, turno.paciente,`Su turno de ${turno.servicio.nombre} fue ${turno.estado} por el medico ${turno.medico}`);
+    // Acepta tanto un Usuario directo como una entidad (Paciente/Medico) que lo referencia.
+    _usuarioDe(entidad) {
+        return entidad && entidad.usuario ? entidad.usuario : entidad;
     }
 
-    crearSegunCancelacionPaciente(turno){
-        return new Notificacion(turno.paciente, turno.medico,`El paciente ${turno.paciente} cancelo su turno de ${turno.servicio.nombre}`);
-    }
-    
-    //El día previo al turno, se envía un recordatorio tanto al paciente como al médico.
-    
-    crearRecordatorioMedico(turno){
-       return new Notificacion("sistema", turno.paciente,`${turno.paciente} recorda que mañana tenes un turno con el medico${turno.medico}`);  
+    _nombreServicio(turno) {
+        return turno.servicio && turno.servicio.nombre ? turno.servicio.nombre : "el servicio solicitado";
     }
 
-    crearRecordatorioPaciente(turno){
-       return new Notificacion("sistema", turno.medico,`${turno.medico} recorda que mañana tenes un turno con el paciente${turno.paciente}`);  
+    _nombrePaciente(turno) {
+        return turno.paciente && turno.paciente.nombre ? turno.paciente.nombre : "Un paciente";
     }
 
-    /*
-    const fechaActual = new Date();
-        const fechaDelTurno = turno.getFechaTurno();
-        
-        const fechaAnteriorAlTurno = new Date(fechaDelTurno);
-        fechaAnteriorAlTurno.setDate(fechaAnteriorAlTurno.getDate() - 1);
-    
-        if( (fechaActual.toDateString()) === (fechaAnteriorAlTurno.toDateString())){
+    _construir(destinatario, remitente, mensaje) {
+        const notificacion = new Notificacion();
+        notificacion.destinatario = destinatario;
+        notificacion.remitente = remitente;
+        notificacion.mensaje = mensaje;
+        notificacion.leida = false;
+        notificacion.fechaHoraCreacion = new Date();
+        return notificacion;
+    }
+
+    // Al reservar un turno, se notifica al medico indicando paciente y servicio.
+    crearSegunTurnoReservado(turno) {
+        return this._construir(
+            this._usuarioDe(turno.medico),
+            this._usuarioDe(turno.paciente),
+            `${this._nombrePaciente(turno)} reservo un turno de ${this._nombreServicio(turno)}.`
+        );
+    }
+
+    // Al aceptar un turno, se notifica al paciente.
+    crearSegunAceptacion(turno) {
+        return this._construir(
+            this._usuarioDe(turno.paciente),
+            this._usuarioDe(turno.medico),
+            `Tu turno de ${this._nombreServicio(turno)} fue confirmado por el medico.`
+        );
+    }
+
+    // Ante cancelaciones, se notifica a la contraparte correspondiente.
+    crearSegunCancelacionMedico(turno) {
+        return this._construir(
+            this._usuarioDe(turno.paciente),
+            this._usuarioDe(turno.medico),
+            `Tu turno de ${this._nombreServicio(turno)} fue cancelado por el medico.`
+        );
+    }
+
+    crearSegunCancelacionPaciente(turno) {
+        return this._construir(
+            this._usuarioDe(turno.medico),
+            this._usuarioDe(turno.paciente),
+            `${this._nombrePaciente(turno)} cancelo su turno de ${this._nombreServicio(turno)}.`
+        );
+    }
+
+    // El dia previo al turno, recordatorio tanto al paciente como al medico.
+    crearRecordatorioPaciente(turno) {
+        return this._construir(
+            this._usuarioDe(turno.paciente),
+            this._usuarioDe(turno.medico),
+            `Recorda que manana tenes un turno de ${this._nombreServicio(turno)}.`
+        );
+    }
+
+    crearRecordatorioMedico(turno) {
+        return this._construir(
+            this._usuarioDe(turno.medico),
+            this._usuarioDe(turno.paciente),
+            `Recorda que manana tenes un turno con ${this._nombrePaciente(turno)}.`
+        );
+    }
+
+    // Metodo del diagrama: arma la notificacion adecuada segun el estado del turno.
+    crearSegunEstadoTurno(turno) {
+        switch (turno.estado) {
+            case "RESERVADO": return this.crearSegunTurnoReservado(turno);
+            case "CONFIRMADO": return this.crearSegunAceptacion(turno);
+            case "CANCELADO": return this.crearSegunCancelacionMedico(turno);
+            default:
+                return this._construir(
+                    this._usuarioDe(turno.paciente),
+                    this._usuarioDe(turno.medico),
+                    `El estado de tu turno cambio a ${turno.estado}.`
+                );
         }
-    */
+    }
 }

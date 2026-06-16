@@ -13,11 +13,12 @@ export class Turno {
     }
 
     // Reservar el turno (solo si está DISPONIBLE)
-    reservar(pacienteId, usuarioId) {
+    reservar(pacienteId, usuarioId, costoConCobertura = null) {
         if (this.estado !== EstadoTurno.DISPONIBLE) {
             throw new Error('El turno no está disponible para reservar');
         }
         this.paciente = pacienteId;
+        this.costoConCobertura = costoConCobertura;
         this.estado = EstadoTurno.RESERVADO;
         this.historialEstados.push({
             fechaHoraDeIngreso: new Date(),
@@ -45,6 +46,20 @@ export class Turno {
             estado: EstadoTurno.CANCELADO,
             usuario: usuarioId,
             motivo: motivo
+        });
+    }
+
+    // Aceptar/confirmar la reserva (solo médico): RESERVADO -> CONFIRMADO
+    aceptar(usuarioId) {
+        if (this.estado !== EstadoTurno.RESERVADO) {
+            throw new Error('Solo se pueden aceptar turnos en estado RESERVADO');
+        }
+        this.estado = EstadoTurno.CONFIRMADO;
+        this.historialEstados.push({
+            fechaHoraDeIngreso: new Date(),
+            estado: EstadoTurno.CONFIRMADO,
+            usuario: usuarioId,
+            motivo: 'Turno aceptado por el médico'
         });
     }
 

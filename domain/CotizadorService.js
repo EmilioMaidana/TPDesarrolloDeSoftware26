@@ -36,6 +36,7 @@ export class CotizadorService {
             const cotizacion = CotizadorService.cotizar(turno, plan);
             return {
                 ...turno.toJSON ? turno.toJSON() : turno,
+                costoConCobertura: cotizacion.costoFinal,
                 cotizacion
             };
         });

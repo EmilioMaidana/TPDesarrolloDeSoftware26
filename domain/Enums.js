@@ -33,3 +33,8 @@ export const DiaSemanaNumero = Object.freeze({
     VIERNES: 5,
     SABADO: 6
 });
+
+export const TipoUsuario = Object.freeze({
+    PACIENTE: "PACIENTE",
+    MEDICO: "MEDICO",
+});
