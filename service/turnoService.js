@@ -50,22 +50,28 @@ export class TurnoService {
 
     // Reservar un turno (paciente)
     async reservar(turnoId, pacienteId) {
-        const turno = await this.turnoRepository.findById(turnoId);
+        // Obtener turno con servicio populado (necesario para calcular cotización)
+        const turno = await this.turnoRepository.findByIdPopulated(turnoId);
         if (!turno) {
             throw new NotFoundError('Turno no encontrado');
         }
 
-        const paciente = await this.pacienteRepository.findById(pacienteId);
+        // Obtener paciente con su plan de obra social para cotizar
+        const paciente = await this.pacienteRepository.findByIdConPlan(pacienteId);
         if (!paciente) {
             throw new NotFoundError('Paciente no encontrado');
         }
 
-        // Usar lógica de dominio
-        turno.reservar(pacienteId, pacienteId);
+        // Calcular cotización según el plan del paciente
+        const cotizacion = CotizadorService.cotizar(turno, paciente.plan);
+
+        // Usar lógica de dominio — reservar con el costo con cobertura calculado
+        turno.reservar(paciente._id, paciente._id, cotizacion.costoFinal);
         await turno.save();
 
         // Notificar al médico
-        const medico = await this.medicoRepository.findById(turno.medico);
+        const medicoId = turno.medico._id || turno.medico;
+        const medico = await this.medicoRepository.findById(medicoId);
         if (medico) {
             await this.notificacionRepository.save({
                 destinatario: medico.usuario,
@@ -74,7 +80,10 @@ export class TurnoService {
             });
         }
 
-        return turno;
+        return {
+            ...turno.toJSON(),
+            cotizacion
+        };
     }
 
     // Cancelar un turno (paciente o médico)
@@ -90,9 +99,9 @@ export class TurnoService {
 
         // Notificar a la contraparte
         if (esMedico && turno.paciente) {
-            // Médico cancela -> notificar al paciente
+            // Médico cancela -> notificar al paciente (en su usuario)
             await this.notificacionRepository.save({
-                destinatario: turno.paciente._id || turno.paciente,
+                destinatario: turno.paciente.usuario || turno.paciente._id || turno.paciente,
                 remitente: usuarioId,
                 mensaje: `Tu turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')} fue cancelado por el médico. Motivo: ${motivo}`
             });
@@ -106,6 +115,35 @@ export class TurnoService {
                     mensaje: `Un paciente ha cancelado su turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')}. Motivo: ${motivo}`
                 });
             }
+        }
+
+        return turno;
+    }
+
+    // Aceptar una reserva (médico) -> CONFIRMADO + notificar al paciente
+    async aceptarReserva(turnoId, medicoId) {
+        const turno = await this.turnoRepository.findByIdPopulated(turnoId);
+        if (!turno) {
+            throw new NotFoundError('Turno no encontrado');
+        }
+
+        const medicoIdTurno = turno.medico._id || turno.medico;
+        if (medicoIdTurno.toString() !== medicoId.toString()) {
+            throw new BadRequestError('Este turno no pertenece al médico indicado');
+        }
+
+        // Lógica de dominio
+        turno.aceptar(medicoId);
+        await turno.save();
+
+        // Notificar al paciente
+        if (turno.paciente) {
+            const pacienteUsuario = turno.paciente.usuario || turno.paciente._id || turno.paciente;
+            await this.notificacionRepository.save({
+                destinatario: pacienteUsuario,
+                remitente: medicoId,
+                mensaje: `Tu turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')} fue confirmado por el médico.`
+            });
         }
 
         return turno;
@@ -149,7 +187,7 @@ export class TurnoService {
 
         // Determinar a quién notificar
         if (turno.paciente) {
-            const destinatarioPaciente = turno.paciente._id || turno.paciente;
+            const destinatarioPaciente = turno.paciente.usuario || turno.paciente._id || turno.paciente;
             await this.notificacionRepository.save({
                 destinatario: destinatarioPaciente,
                 remitente: usuarioId,
@@ -181,6 +219,15 @@ export class TurnoService {
         await turno.save();
 
         return turno;
+    }
+
+    // Agenda completa de un médico (para aceptar/cancelar/marcar realizado)
+    async obtenerAgendaMedico(medicoId, estado = null) {
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Médico no encontrado');
+        }
+        return await this.turnoRepository.findByMedico(medicoId, estado);
     }
 
     // Historial de turnos de un paciente

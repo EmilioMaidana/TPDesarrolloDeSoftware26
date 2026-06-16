@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { MedicoModel } from "../schemas/medicoSchema.js";
 
 export class MedicoRepository {
@@ -36,6 +37,44 @@ export class MedicoRepository {
         return await MedicoModel.findByIdAndUpdate(
             id,
             { disponibilidades },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async actualizarDisponibilidadPorId(medicoId, disponibilidadId, disponibilidad) {
+        return await MedicoModel.findOneAndUpdate(
+            {
+                _id: medicoId,
+                eliminado: false,
+                "disponibilidades._id": disponibilidadId
+            },
+            {
+                $set: {
+                    "disponibilidades.$": {
+                        ...disponibilidad,
+                        _id: disponibilidadId
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async actualizarDisponibilidadPorIndice(medicoId, disponibilidadIndex, disponibilidad) {
+        return await MedicoModel.findOneAndUpdate(
+            {
+                _id: medicoId,
+                eliminado: false,
+                [`disponibilidades.${disponibilidadIndex}`]: { $exists: true }
+            },
+            {
+                $set: {
+                    [`disponibilidades.${disponibilidadIndex}`]: {
+                        ...disponibilidad,
+                        _id: disponibilidad._id || new mongoose.Types.ObjectId()
+                    }
+                }
+            },
             { new: true, runValidators: true }
         );
     }

@@ -62,10 +62,17 @@ describe('Service - TurnoService', () => {
             turnoMock.estado = EstadoTurno.DISPONIBLE;
             turnoMock.historialEstados = [];
             turnoMock.medico = 'med1';
+            turnoMock.servicio = 'esp1';
+            turnoMock.servicioTipo = 'Especialidad';
+            turnoMock.costo = 1000;
+            turnoMock.fechaHora = new Date();
             turnoMock.save = jest.fn();
+            turnoMock.toJSON = () => ({ id: 'turno1' });
 
-            mockTurnoRepo.findById.mockResolvedValue(turnoMock);
-            mockPacienteRepo.findById.mockResolvedValue({ nombre: 'Juan' });
+            // El service usa findByIdPopulated para traer el turno con el servicio
+            mockTurnoRepo.findByIdPopulated.mockResolvedValue(turnoMock);
+            // ...y findByIdConPlan para cotizar segun el plan del paciente
+            mockPacienteRepo.findByIdConPlan.mockResolvedValue({ _id: 'pac1', nombre: 'Juan', plan: null });
             mockMedicoRepo.findById.mockResolvedValue({ usuario: 'usrMed' });
 
             await turnoService.reservar('turno1', 'pac1');
@@ -74,6 +81,39 @@ describe('Service - TurnoService', () => {
             expect(turnoMock.paciente).toBe('pac1');
             expect(turnoMock.save).toHaveBeenCalled();
             expect(mockNotificacionRepo.save).toHaveBeenCalled();
+        });
+    });
+
+    describe('aceptarReserva', () => {
+        it('debe confirmar el turno y notificar al paciente', async () => {
+            const turnoMock = new Turno();
+            turnoMock.estado = EstadoTurno.RESERVADO;
+            turnoMock.historialEstados = [];
+            turnoMock.medico = 'med1';
+            turnoMock.paciente = { _id: 'pac1', usuario: 'usrPac' };
+            turnoMock.fechaHora = new Date();
+            turnoMock.save = jest.fn();
+
+            mockTurnoRepo.findByIdPopulated.mockResolvedValue(turnoMock);
+
+            await turnoService.aceptarReserva('turno1', 'med1');
+
+            expect(turnoMock.estado).toBe(EstadoTurno.CONFIRMADO);
+            expect(turnoMock.save).toHaveBeenCalled();
+            expect(mockNotificacionRepo.save).toHaveBeenCalledWith(
+                expect.objectContaining({ destinatario: 'usrPac' })
+            );
+        });
+
+        it('debe rechazar si el turno no pertenece al médico', async () => {
+            const turnoMock = new Turno();
+            turnoMock.estado = EstadoTurno.RESERVADO;
+            turnoMock.historialEstados = [];
+            turnoMock.medico = 'medOtro';
+
+            mockTurnoRepo.findByIdPopulated.mockResolvedValue(turnoMock);
+
+            await expect(turnoService.aceptarReserva('turno1', 'med1')).rejects.toThrow();
         });
     });
 });

@@ -39,5 +39,5 @@ export const disponibilidadHorariaSchema = new mongoose.Schema({
 },
 
 {
-  _id: false,
+  _id: true,
 });

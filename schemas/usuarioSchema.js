@@ -14,6 +14,13 @@ const usuarioSchema = new mongoose.Schema({
     required: true,
   },
 
+  usuarioTipo: {
+    type: String,
+    enum: ["PACIENTE", "MEDICO"],
+    required: true,
+    trim: true,
+  },
+
   eliminado: {
     type: Boolean,
     default: false,

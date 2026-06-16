@@ -10,16 +10,18 @@ const options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000',
-        description: 'Servidor de desarrollo',
+        url: process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 3000}`,
+        description: 'Servidor',
       },
     ],
     tags: [
       { name: 'Turnos', description: 'Gestión del ciclo de vida de turnos' },
       { name: 'Búsqueda', description: 'Búsqueda de turnos disponibles con cotización' },
       { name: 'Médicos', description: 'Gestión de disponibilidad y servicios médicos' },
-      { name: 'Notificaciones', description: 'Visualización y gestión de notificaciones' },
       { name: 'Servicios', description: 'Alta, baja y modificación de servicios médicos' },
+      { name: 'Pacientes', description: 'Consulta de pacientes y su cobertura' },
+      { name: 'Notificaciones', description: 'Visualización y gestión de notificaciones' },
+      { name: 'Sistema', description: 'Endpoints utilitarios (health check)' },
     ],
   },
   apis: ['./routes/*.js'],

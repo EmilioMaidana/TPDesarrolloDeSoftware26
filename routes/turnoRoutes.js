@@ -97,6 +97,27 @@ export function createTurnoRoutes(turnoController) {
 
     /**
      * @swagger
+     * /api/turnos/medico/{medicoId}:
+     *   get:
+     *     summary: Agenda de turnos de un medico
+     *     tags: [Turnos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *       - in: query
+     *         name: estado
+     *         schema: { type: string, enum: [DISPONIBLE, RESERVADO, CONFIRMADO, REALIZADO, CANCELADO] }
+     *         description: Filtrar por estado del turno
+     *     responses:
+     *       200:
+     *         description: Turnos del medico
+     */
+    router.get('/medico/:medicoId', (req, res, next) => turnoController.agendaMedico(req, res, next));
+
+    /**
+     * @swagger
      * /api/turnos/{id}:
      *   get:
      *     summary: Obtener turno por ID
@@ -216,6 +237,27 @@ export function createTurnoRoutes(turnoController) {
      *         description: Reprogramación confirmada
      */
     router.patch('/:id/confirmar-reprogramacion', (req, res, next) => turnoController.confirmarReprogramacion(req, res, next));
+
+    /**
+     * @swagger
+     * /api/turnos/{id}/aceptar:
+     *   post:
+     *     summary: Aceptar un turno reservado (médico) y notificar al paciente
+     *     tags: [Turnos]
+     *     parameters:
+     *       - in: path
+     *         name: id
+     *         required: true
+     *         schema: { type: string }
+     *       - in: query
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *     responses:
+     *       200:
+     *         description: Turno aceptado (CONFIRMADO)
+     */
+    router.post('/:id/aceptar', (req, res, next) => turnoController.aceptar(req, res, next));
 
     /**
      * @swagger

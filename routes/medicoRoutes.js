@@ -1,7 +1,19 @@
 import express from 'express';
 
-export function createMedicoRoutes(disponibilidadController, servicioController) {
+export function createMedicoRoutes(disponibilidadController, servicioController, medicoController) {
     const router = express.Router();
+
+    /**
+     * @swagger
+     * /api/medicos:
+     *   get:
+     *     summary: Listar todos los medicos (con sus especialidades y practicas)
+     *     tags: [Médicos]
+     *     responses:
+     *       200:
+     *         description: Lista de medicos
+     */
+    router.get('/', (req, res, next) => medicoController.listar(req, res, next));
 
     /**
      * @swagger
@@ -97,6 +109,42 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
 
     /**
      * @swagger
+     * /api/medicos/{medicoId}/disponibilidad/{disponibilidadId}:
+     *   patch:
+     *     summary: Actualizar una disponibilidad horaria especifica de un medico
+     *     tags: [Médicos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *       - in: path
+     *         name: disponibilidadId
+     *         required: true
+     *         schema: { type: string }
+     *         description: ID de la disponibilidad, o indice del array para disponibilidades legacy sin ID
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required: [diaSemana, horaDesde, horaHasta, servicio, servicioTipo]
+     *             properties:
+     *               diaSemana: { type: string, enum: [LUNES, MARTES, MIERCOLES, JUEVES, VIERNES, SABADO, DOMINGO] }
+     *               horaDesde: { type: string, example: "08:00" }
+     *               horaHasta: { type: string, example: "12:00" }
+     *               servicio: { type: string, description: ID de la especialidad o practica }
+     *               servicioTipo: { type: string, enum: [Especialidad, Practica] }
+     *               sede: { type: object, properties: { nombre: { type: string }, direccion: { type: string } } }
+     *     responses:
+     *       200:
+     *         description: Disponibilidad especifica actualizada y turnos regenerados
+     */
+    router.patch('/:medicoId/disponibilidad/:disponibilidadId', (req, res, next) => disponibilidadController.actualizarDisponibilidadPorId(req, res, next));
+
+    /**
+     * @swagger
      * /api/medicos/{medicoId}/servicios:
      *   get:
      *     summary: Listar servicios (especialidades y practicas) de un medico
@@ -163,6 +211,23 @@ export function createMedicoRoutes(disponibilidadController, servicioController)
      *         description: Servicio eliminado
      */
     router.delete('/:medicoId/servicios/:servicioId', (req, res, next) => servicioController.bajaServicio(req, res, next));
+
+    /**
+     * @swagger
+     * /api/medicos/{medicoId}:
+     *   get:
+     *     summary: Obtener un medico por ID
+     *     tags: [Médicos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *     responses:
+     *       200:
+     *         description: Datos del medico
+     */
+    router.get('/:medicoId', (req, res, next) => medicoController.obtener(req, res, next));
 
     return router;
 }

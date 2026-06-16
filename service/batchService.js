@@ -2,10 +2,11 @@ import { Agenda } from "../domain/Agenda.js";
 
 export class BatchService {
 
-    constructor(medicoRepository, turnoRepository, servicioRepository) {
+    constructor(medicoRepository, turnoRepository, servicioRepository, notificacionRepository) {
         this.medicoRepository = medicoRepository;
         this.turnoRepository = turnoRepository;
         this.servicioRepository = servicioRepository;
+        this.notificacionRepository = notificacionRepository;
     }
 
     async generarTurnosParaTodosLosMedicos() {
@@ -53,5 +54,44 @@ export class BatchService {
 
         console.log(`Total de turnos generados: ${totalGenerados}`);
         return totalGenerados;
+    }
+
+    async enviarRecordatorios() {
+        const mananaInicio = new Date();
+        mananaInicio.setDate(mananaInicio.getDate() + 1);
+        mananaInicio.setHours(0, 0, 0, 0);
+
+        const mananaFin = new Date(mananaInicio);
+        mananaFin.setHours(23, 59, 59, 999);
+
+        const turnos = await this.turnoRepository.findTurnosParaRecordatorio(mananaInicio, mananaFin);
+        let recordatoriosEnviados = 0;
+
+        for (const turno of turnos) {
+            const fechaString = new Date(turno.fechaHora).toLocaleString('es-AR');
+            
+            // Recordatorio al paciente
+            if (turno.paciente && turno.paciente.usuario) {
+                await this.notificacionRepository.save({
+                    destinatario: turno.paciente.usuario,
+                    remitente: turno.paciente.usuario, // Sistema
+                    mensaje: `Recordatorio: Tienes un turno mañana ${fechaString} en ${turno.sede.nombre}.`
+                });
+                recordatoriosEnviados++;
+            }
+
+            // Recordatorio al médico
+            if (turno.medico && turno.medico.usuario) {
+                await this.notificacionRepository.save({
+                    destinatario: turno.medico.usuario,
+                    remitente: turno.medico.usuario, // Sistema
+                    mensaje: `Recordatorio: Tienes un turno agendado para mañana ${fechaString} con el paciente ${turno.paciente ? turno.paciente.nombre : 'Desconocido'}.`
+                });
+                recordatoriosEnviados++;
+            }
+        }
+
+        console.log(`Total de recordatorios enviados: ${recordatoriosEnviados}`);
+        return recordatoriosEnviados;
     }
 }

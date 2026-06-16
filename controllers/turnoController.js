@@ -100,6 +100,20 @@ export class TurnoController {
         }
     }
 
+    // POST /api/turnos/:id/aceptar?medicoId=...
+    async aceptar(req, res, next) {
+        try {
+            const { medicoId } = req.query;
+            if (!medicoId) {
+                return res.status(400).json({ message: 'El parámetro medicoId es obligatorio' });
+            }
+            const turno = await this.turnoService.aceptarReserva(req.params.id, medicoId);
+            res.json({ message: 'Turno aceptado', turno });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     // PATCH /api/turnos/:id/realizado?medicoId=...
     async marcarRealizado(req, res, next) {
         try {
@@ -109,6 +123,17 @@ export class TurnoController {
             }
             const turno = await this.turnoService.marcarRealizado(req.params.id, medicoId);
             res.json({ message: 'Turno marcado como realizado', turno });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // GET /api/turnos/medico/:medicoId?estado=...
+    async agendaMedico(req, res, next) {
+        try {
+            const { estado } = req.query;
+            const turnos = await this.turnoService.obtenerAgendaMedico(req.params.medicoId, estado);
+            res.json(turnos);
         } catch (error) {
             next(error);
         }

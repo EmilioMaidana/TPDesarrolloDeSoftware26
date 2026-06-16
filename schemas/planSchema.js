@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
-import { coberturaEspecialidadSchema } from "./CoberturaEspecialidadSchema.js";
-import { coberturaPracticaSchema } from "./CoberturaPracticaSchema.js";
+import { coberturaEspecialidadSchema } from "./coberturaEspecialidadSchema.js";
+import { coberturaPracticaSchema } from "./coberturaPracticaSchema.js";
 import { Plan as PlanClass } from "../domain/Plan.js";
 
 const planSchema = new mongoose.Schema({

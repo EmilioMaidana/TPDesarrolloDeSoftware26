@@ -12,7 +12,7 @@ import { NotificacionRepository } from '../repositories/notificacionRepository.j
 import { BatchService } from '../service/batchService.js';
 
 async function runBatch() {
-    console.log(`[${new Date().toISOString()}] Iniciando proceso batch de generacion de turnos...`);
+    console.log(`[${new Date().toISOString()}] Iniciando proceso batch de envio de recordatorios...`);
 
     try {
         await MongoDBClient.connect();
@@ -24,7 +24,7 @@ async function runBatch() {
         
         const batchService = new BatchService(medicoRepository, turnoRepository, servicioRepository, notificacionRepository);
 
-        await batchService.generarTurnosParaTodosLosMedicos();
+        await batchService.enviarRecordatorios();
 
         console.log(`[${new Date().toISOString()}] Proceso batch finalizado exitosamente.`);
     } catch (error) {
@@ -36,7 +36,7 @@ async function runBatch() {
     }
 }
 
-// Si se ejecuta directamente (node batch/generarTurnos.js)
+// Si se ejecuta directamente (node batch/enviarRecordatorios.js)
 if (process.argv[1] && process.argv[1].includes('generarTurnos.js')) {
     runBatch().then(() => process.exit(0));
 }

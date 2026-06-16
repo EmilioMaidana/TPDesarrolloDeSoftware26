@@ -66,4 +66,21 @@ export class DisponibilidadController {
             next(error);
         }
     }
+
+    // PATCH /api/medicos/:medicoId/disponibilidad/:disponibilidadId
+    async actualizarDisponibilidadPorId(req, res, next) {
+        try {
+            const resultado = await this.disponibilidadService.actualizarDisponibilidadPorId(
+                req.params.medicoId,
+                req.params.disponibilidadId,
+                req.body
+            );
+            res.json({
+                message: 'Disponibilidad actualizada y turnos regenerados',
+                ...resultado
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

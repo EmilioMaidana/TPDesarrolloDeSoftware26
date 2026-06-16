@@ -56,6 +56,12 @@ const turnoSchema = new mongoose.Schema({
     min: 0,
   },
 
+  costoConCobertura: {
+    type: Number,
+    min: 0,
+    default: null,
+  },
+
   motivoCancelacion: {
     type: String,
     trim: true,

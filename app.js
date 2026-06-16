@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
+import './schemas/registerModels.js'; // registra todos los modelos antes de los populates
 import { swaggerSpec } from './config/swagger.js';
 import { createRouter } from './routes/router.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
@@ -19,12 +20,16 @@ import { TurnoService } from './service/turnoService.js';
 import { NotificacionService } from './service/notificacionService.js';
 import { ServicioService } from './service/servicioService.js';
 import { DisponibilidadService } from './service/disponibilidadService.js';
+import { MedicoService } from './service/medicoService.js';
+import { PacienteService } from './service/pacienteService.js';
 
 // Controllers
 import { TurnoController } from './controllers/turnoController.js';
 import { NotificacionController } from './controllers/notificacionController.js';
 import { ServicioController } from './controllers/servicioController.js';
 import { DisponibilidadController } from './controllers/disponibilidadController.js';
+import { MedicoController } from './controllers/medicoController.js';
+import { PacienteController } from './controllers/pacienteController.js';
 
 // === Inyección de Dependencias ===
 
@@ -40,12 +45,16 @@ const turnoService = new TurnoService(turnoRepository, pacienteRepository, medic
 const notificacionService = new NotificacionService(notificacionRepository);
 const servicioService = new ServicioService(servicioRepository, medicoRepository);
 const disponibilidadService = new DisponibilidadService(medicoRepository, turnoRepository, servicioRepository);
+const medicoService = new MedicoService(medicoRepository);
+const pacienteService = new PacienteService(pacienteRepository);
 
 // Controllers
 const turnoController = new TurnoController(turnoService);
 const notificacionController = new NotificacionController(notificacionService);
 const servicioController = new ServicioController(servicioService);
 const disponibilidadController = new DisponibilidadController(disponibilidadService);
+const medicoController = new MedicoController(medicoService);
+const pacienteController = new PacienteController(pacienteService);
 
 // === App Express ===
 const app = express();
@@ -70,7 +79,9 @@ app.use('/api', createRouter({
     turnoController,
     notificacionController,
     disponibilidadController,
-    servicioController
+    servicioController,
+    medicoController,
+    pacienteController
 }));
 
 // Middlewares de error (orden importa)

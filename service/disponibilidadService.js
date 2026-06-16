@@ -8,6 +8,16 @@ export class DisponibilidadService {
         this.turnoRepository = turnoRepository;
         this.servicioRepository = servicioRepository;
     }
+
+    _validarDisponibilidad(disponibilidadData, mensaje) {
+        if (!disponibilidadData) {
+            throw new BadRequestError(mensaje);
+        }
+        const { diaSemana, horaDesde, horaHasta, servicio, servicioTipo } = disponibilidadData;
+        if (!diaSemana || !horaDesde || !horaHasta || !servicio || !servicioTipo) {
+            throw new BadRequestError(mensaje);
+        }
+    }
     
     // Crear disponibilidad para un medico
     async crearDisponibilidad(medicoId, disponibilidadData) {
@@ -130,6 +140,96 @@ export class DisponibilidadService {
         }
 
         return {
+            disponibilidades: medicoActualizado.disponibilidades,
+            turnosGenerados: turnosFiltrados.length
+        };
+    }
+
+    // Actualizar una disponibilidad especifica de un medico
+    async actualizarDisponibilidadPorId(medicoId, disponibilidadId, disponibilidadData) {
+        this._validarDisponibilidad(
+            disponibilidadData,
+            'diaSemana, horaDesde, horaHasta, servicio y servicioTipo son obligatorios'
+        );
+
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Medico no encontrado');
+        }
+
+        let disponibilidadIndex = medico.disponibilidades.findIndex(
+            d => d._id && d._id.toString() === disponibilidadId.toString()
+        );
+        let actualizarPorId = disponibilidadIndex >= 0;
+        if (disponibilidadIndex < 0 && /^\d+$/.test(disponibilidadId.toString())) {
+            const index = parseInt(disponibilidadId, 10);
+            if (index >= 0 && index < medico.disponibilidades.length) {
+                disponibilidadIndex = index;
+                actualizarPorId = false;
+            }
+        }
+
+        const disponibilidadActual = medico.disponibilidades[disponibilidadIndex];
+        if (!disponibilidadActual) {
+            throw new NotFoundError('Disponibilidad no encontrada');
+        }
+
+        const { servicio, servicioTipo } = disponibilidadData;
+        const servicioEncontrado = await this.servicioRepository.findServicioById(servicioTipo, servicio);
+        if (!servicioEncontrado) {
+            throw new NotFoundError('Servicio no encontrado');
+        }
+
+        const medicoActualizado = actualizarPorId
+            ? await this.medicoRepository.actualizarDisponibilidadPorId(
+                medicoId,
+                disponibilidadId,
+                disponibilidadData
+            )
+            : await this.medicoRepository.actualizarDisponibilidadPorIndice(
+                medicoId,
+                disponibilidadIndex,
+                disponibilidadData
+            );
+        if (!medicoActualizado) {
+            throw new NotFoundError('Disponibilidad no encontrada');
+        }
+
+        await this.turnoRepository.eliminarDisponiblesFuturosPorDisponibilidad(medicoId, disponibilidadActual);
+
+        const disponibilidadActualizada = medicoActualizado.disponibilidades[disponibilidadIndex];
+        const diasAdelante = parseInt(process.env.BATCH_DAYS_AHEAD) || 14;
+        const serviciosMap = new Map();
+        serviciosMap.set(servicio.toString(), {
+            duracionTurnoEnMins: servicioEncontrado.duracionTurnoEnMins,
+            costoConsulta: servicioEncontrado.costoConsulta
+        });
+
+        const nuevosTurnos = Agenda.generarTurnosParaMedico(
+            {
+                _id: medicoActualizado._id,
+                usuario: medicoActualizado.usuario,
+                sedes: medicoActualizado.sedes,
+                disponibilidades: [disponibilidadActualizada]
+            },
+            diasAdelante,
+            serviciosMap
+        );
+
+        const turnosFiltrados = [];
+        for (const turno of nuevosTurnos) {
+            const existe = await this.turnoRepository.existeTurnoEnHorario(turno.medico, turno.fechaHora);
+            if (!existe) {
+                turnosFiltrados.push(turno);
+            }
+        }
+
+        if (turnosFiltrados.length > 0) {
+            await this.turnoRepository.insertMany(turnosFiltrados);
+        }
+
+        return {
+            disponibilidad: disponibilidadActualizada,
             disponibilidades: medicoActualizado.disponibilidades,
             turnosGenerados: turnosFiltrados.length
         };

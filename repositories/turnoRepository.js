@@ -1,5 +1,5 @@
 import { TurnoModel } from "../schemas/turnoSchema.js";
-import { EstadoTurno } from "../domain/Enums.js";
+import { DiaSemanaNumero, EstadoTurno } from "../domain/Enums.js";
 
 export class TurnoRepository {
 
@@ -90,6 +90,16 @@ export class TurnoRepository {
         };
     }
 
+    // Agenda de un médico (opcionalmente filtrada por estado)
+    async findByMedico(medicoId, estado = null) {
+        const filtro = { medico: medicoId, eliminado: false };
+        if (estado) filtro.estado = estado;
+        return await TurnoModel.find(filtro)
+            .populate('paciente', 'nombre dni')
+            .populate('servicio')
+            .sort({ fechaHora: 1 });
+    }
+
     // Historial de turnos de un paciente
     async findByPaciente(pacienteId) {
         return await TurnoModel.find({ paciente: pacienteId, eliminado: false })
@@ -120,6 +130,34 @@ export class TurnoRepository {
         });
     }
 
+    async eliminarDisponiblesFuturosPorDisponibilidad(medicoId, disponibilidad) {
+        const ahora = new Date();
+        const diaSemanaMongo = DiaSemanaNumero[disponibilidad.diaSemana] + 1;
+        const horaDelTurno = {
+            $dateToString: {
+                format: "%H:%M",
+                date: "$fechaHora",
+                timezone: "UTC"
+            }
+        };
+
+        return await TurnoModel.deleteMany({
+            medico: medicoId,
+            estado: EstadoTurno.DISPONIBLE,
+            fechaHora: { $gt: ahora },
+            servicio: disponibilidad.servicio,
+            servicioTipo: disponibilidad.servicioTipo,
+            eliminado: false,
+            $expr: {
+                $and: [
+                    { $eq: [{ $dayOfWeek: "$fechaHora" }, diaSemanaMongo] },
+                    { $gte: [horaDelTurno, disponibilidad.horaDesde] },
+                    { $lt: [horaDelTurno, disponibilidad.horaHasta] }
+                ]
+            }
+        });
+    }
+
     // Bulk insert para el batch
     async insertMany(turnos) {
         return await TurnoModel.insertMany(turnos);
@@ -133,5 +171,16 @@ export class TurnoRepository {
             estado: { $in: [EstadoTurno.DISPONIBLE, EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO] },
             eliminado: false
         });
+    }
+
+    // Buscar turnos de un rango de fechas para enviar recordatorios
+    async findTurnosParaRecordatorio(inicio, fin) {
+        return await TurnoModel.find({
+            fechaHora: { $gte: inicio, $lte: fin },
+            estado: { $in: [EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO] },
+            eliminado: false
+        })
+        .populate('paciente')
+        .populate('medico');
     }
 }
