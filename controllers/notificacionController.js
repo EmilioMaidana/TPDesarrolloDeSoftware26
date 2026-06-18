@@ -4,20 +4,20 @@ export class NotificacionController {
         this.notificacionService = notificacionService;
     }
 
-    // GET /api/notificaciones/no-leidas/:usuarioId
-    async obtenerNoLeidas(req, res, next) {
+    // GET /api/notificaciones/:usuarioId
+    async obtenerNotificaciones(req, res, next) {
         try {
-            const notificaciones = await this.notificacionService.obtenerNoLeidas(req.params.usuarioId);
-            res.json(notificaciones);
-        } catch (error) {
-            next(error);
-        }
-    }
+            const { usuarioId } = req.params;
+            const { leidas } = req.query;
+            
+            let leidasFilter;
+            if (leidas !== undefined) {
+                const val = String(leidas).toLowerCase();
+                if (val === 'true' || val === '1') leidasFilter = true;
+                else if (val === 'false' || val === '0') leidasFilter = false;
+            }
 
-    // GET /api/notificaciones/leidas/:usuarioId
-    async obtenerLeidas(req, res, next) {
-        try {
-            const notificaciones = await this.notificacionService.obtenerLeidas(req.params.usuarioId);
+            const notificaciones = await this.notificacionService.obtenerPorUsuario(usuarioId, leidasFilter);
             res.json(notificaciones);
         } catch (error) {
             next(error);

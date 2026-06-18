@@ -2,18 +2,16 @@ import { NotificacionModel } from "../schemas/notificacionSchema.js";
 
 export class NotificacionRepository {
 
-    async findNoLeidas(usuarioId) {
-        return await NotificacionModel.find({
-            destinatario: usuarioId,
-            leida: false
-        }).sort({ fechaHoraCreacion: -1 });
-    }
-
-    async findLeidas(usuarioId) {
-        return await NotificacionModel.find({
-            destinatario: usuarioId,
-            leida: true
-        }).sort({ fechaHoraLeida: -1 });
+    async findByUsuario(usuarioId, leidas) {
+        const query = { destinatario: usuarioId };
+        if (leidas !== undefined) {
+            query.leida = leidas;
+        }
+        const sort = leidas === true ? { fechaHoraLeida: -1 } : { fechaHoraCreacion: -1 };
+        return await NotificacionModel.find(query)
+            .sort(sort)
+            .populate('remitente', 'nombre nombreUsuario usuarioTipo')
+            .populate('destinatario', 'nombre nombreUsuario usuarioTipo');
     }
 
     async findById(id) {

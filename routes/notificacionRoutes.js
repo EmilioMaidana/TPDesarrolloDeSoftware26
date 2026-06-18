@@ -3,41 +3,30 @@ import express from 'express';
 export function createNotificacionRoutes(notificacionController) {
     const router = express.Router();
 
-    /**
+/**
      * @swagger
-     * /api/usuarios/:{usuarioId}/notificaciones/?leidas=true|false:
-     * /api/notificaciones/no-leidas/{usuarioId}:
+     * /api/notificaciones/{usuarioId}:
      *   get:
-     *     summary: Obtener notificaciones no leídas de un usuario
+     *     summary: Obtener notificaciones de un usuario
      *     tags: [Notificaciones]
      *     parameters:
      *       - in: path
      *         name: usuarioId
      *         required: true
-     *         schema: { type: string }
+     *         description: ID del usuario
+     *         schema: 
+     *           type: string
+     *       - in: query
+     *         name: leidas
+     *         required: false
+     *         description: Filtrar notificaciones por estado de lectura (true o false)
+     *         schema: 
+     *           type: boolean
      *     responses:
      *       200:
-     *         description: Lista de notificaciones no leídas
+     *         description: Lista de notificaciones
      */
-    router.get('/no-leidas/:usuarioId', (req, res, next) => notificacionController.obtenerNoLeidas(req, res, next));
-
-    /**
-     * @swagger
-     * /api/notificaciones/leidas/{usuarioId}:
-     * /api/usuarios/:{usuarioId}/notificaciones/?leidas=true|false:
-     *   get:
-     *     summary: Obtener notificaciones leídas de un usuario
-     *     tags: [Notificaciones]
-     *     parameters:
-     *       - in: path
-     *         name: usuarioId
-     *         required: true
-     *         schema: { type: string }
-     *     responses:
-     *       200:
-     *         description: Lista de notificaciones leídas
-     */
-    router.get('/leidas/:usuarioId', (req, res, next) => notificacionController.obtenerLeidas(req, res, next));
+    router.get('/:usuarioId', (req, res, next) => notificacionController.obtenerNotificaciones(req, res, next));
 
     /**
      * @swagger

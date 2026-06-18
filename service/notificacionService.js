@@ -6,12 +6,8 @@ export class NotificacionService {
         this.notificacionRepository = notificacionRepository;
     }
 
-    async obtenerNoLeidas(usuarioId) {
-        return await this.notificacionRepository.findNoLeidas(usuarioId);
-    }
-
-    async obtenerLeidas(usuarioId) {
-        return await this.notificacionRepository.findLeidas(usuarioId);
+    async obtenerPorUsuario(usuarioId, leidas) {
+        return await this.notificacionRepository.findByUsuario(usuarioId, leidas);
     }
 
     async marcarComoLeida(notificacionId) {
