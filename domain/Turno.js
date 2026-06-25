@@ -79,10 +79,11 @@ export class Turno {
 
     // Proponer reprogramación de fecha
     proponerCambioFecha(nuevaFecha, usuarioId) {
-        if (this.estado !== EstadoTurno.RESERVADO) {
-            throw new Error('Solo se pueden reprogramar turnos RESERVADOS');
+        if (this.estado !== EstadoTurno.RESERVADO && this.estado !== EstadoTurno.CONFIRMADO) {
+            throw new Error('Solo se pueden reprogramar turnos RESERVADOS o CONFIRMADOS');
         }
         this.fechaPropuesta = nuevaFecha;
+        this.solicitadoPor = usuarioId;
         this.estado = EstadoTurno.PENDIENTE_CONFIRMACION;
         this.historialEstados.push({
             fechaHoraDeIngreso: new Date(),
@@ -92,7 +93,7 @@ export class Turno {
         });
     }
 
-    // Confirmar reprogramación
+    // Confirmar reprogramación (solo la contraparte puede confirmar)
     confirmarCambioFecha(usuarioId) {
         if (this.estado !== EstadoTurno.PENDIENTE_CONFIRMACION) {
             throw new Error('No hay una reprogramación pendiente de confirmación');
@@ -100,8 +101,12 @@ export class Turno {
         if (!this.fechaPropuesta) {
             throw new Error('No hay fecha propuesta para confirmar');
         }
+        if (this.solicitadoPor && this.solicitadoPor.toString() === usuarioId.toString()) {
+            throw new Error('No podés confirmar tu propia solicitud de cambio de fecha. Debe confirmarla la contraparte.');
+        }
         this.fechaHora = this.fechaPropuesta;
         this.fechaPropuesta = null;
+        this.solicitadoPor = null;
         this.estado = EstadoTurno.RESERVADO;
         this.historialEstados.push({
             fechaHoraDeIngreso: new Date(),

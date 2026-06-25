@@ -21,7 +21,7 @@ async function runBatch() {
         const turnoRepository = new TurnoRepository();
         const servicioRepository = new ServicioRepository();
         const notificacionRepository = new NotificacionRepository();
-        
+
         const batchService = new BatchService(medicoRepository, turnoRepository, servicioRepository, notificacionRepository);
 
         await batchService.enviarRecordatorios();
@@ -37,7 +37,7 @@ async function runBatch() {
 }
 
 // Si se ejecuta directamente (node batch/enviarRecordatorios.js)
-if (process.argv[1] && process.argv[1].includes('generarTurnos.js')) {
+if (process.argv[1] && process.argv[1].includes('enviarRecordatorios.js')) {
     runBatch().then(() => process.exit(0));
 }
 

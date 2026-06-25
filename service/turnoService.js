@@ -87,25 +87,24 @@ export class TurnoService {
     }
 
     // Cancelar un turno (paciente o médico)
-    async cancelar(turnoId, usuarioId, motivo, esMedico = false) {
+    async cancelar(turnoId, usuarioId, motivo) {
         const turno = await this.turnoRepository.findByIdPopulated(turnoId);
         if (!turno) {
             throw new NotFoundError('Turno no encontrado');
         }
-
         // Usar lógica de dominio
         turno.cancelar(usuarioId, motivo);
         await turno.save();
 
         // Notificar a la contraparte
-        if (esMedico && turno.paciente) {
+        if (await this.medicoRepository.findByUsuario(usuarioId)) {
             // Médico cancela -> notificar al paciente (en su usuario)
             await this.notificacionRepository.save({
                 destinatario: turno.paciente.usuario || turno.paciente._id || turno.paciente,
                 remitente: usuarioId,
                 mensaje: `Tu turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')} fue cancelado por el médico. Motivo: ${motivo}`
             });
-        } else if (!esMedico && turno.medico) {
+        } else if (await this.pacienteRepository.findById(usuarioId)) {
             // Paciente cancela -> notificar al médico
             const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
             if (medico) {
@@ -182,19 +181,20 @@ export class TurnoService {
         turno.proponerCambioFecha(new Date(nuevaFecha), usuarioId);
         await turno.save();
 
-        // Notificar a la contraparte
-        const mensaje = `Se ha propuesto un cambio de fecha para tu turno al ${new Date(nuevaFecha).toLocaleString('es-AR')}. Requiere confirmación.`;
+        // Notificar solo a la contraparte
+        const mensaje = `Se ha propuesto un cambio de fecha para tu turno al ${new Date(nuevaFecha).toLocaleString('es-AR')}. Requiere tu confirmación.`;
 
-        // Determinar a quién notificar
-        if (turno.paciente) {
+        const esMedico = await this.medicoRepository.findByUsuario(usuarioId);
+        if (esMedico && turno.paciente) {
+            // El médico propuso → notificar al paciente
             const destinatarioPaciente = turno.paciente.usuario || turno.paciente._id || turno.paciente;
             await this.notificacionRepository.save({
                 destinatario: destinatarioPaciente,
                 remitente: usuarioId,
                 mensaje
             });
-        }
-        if (turno.medico) {
+        } else if (turno.medico) {
+            // El paciente propuso → notificar al médico
             const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
             if (medico) {
                 await this.notificacionRepository.save({

@@ -24,15 +24,6 @@ export class MedicoRepository {
         return await MedicoModel.findOne({ usuario: usuarioId, eliminado: false });
     }
 
-    async save(medicoData) {
-        const medico = new MedicoModel(medicoData);
-        return await medico.save();
-    }
-
-    async update(id, data) {
-        return await MedicoModel.findByIdAndUpdate(id, data, { new: true, runValidators: true });
-    }
-
     async actualizarDisponibilidad(id, disponibilidades) {
         return await MedicoModel.findByIdAndUpdate(
             id,
@@ -103,9 +94,5 @@ export class MedicoRepository {
             { $pull: { [campo]: servicioId } },
             { new: true }
         );
-    }
-
-    async softDelete(id) {
-        return await MedicoModel.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 }

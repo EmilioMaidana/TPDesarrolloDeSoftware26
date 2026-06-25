@@ -43,16 +43,5 @@ export class PacienteRepository {
             .populate('obraSocial');
     }
 
-    async save(pacienteData) {
-        const paciente = new PacienteModel(pacienteData);
-        return await paciente.save();
-    }
 
-    async update(id, data) {
-        return await PacienteModel.findByIdAndUpdate(id, data, { new: true, runValidators: true });
-    }
-
-    async softDelete(id) {
-        return await PacienteModel.findByIdAndUpdate(id, { eliminado: true }, { new: true });
-    }
 }

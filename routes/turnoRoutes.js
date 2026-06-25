@@ -169,9 +169,6 @@ export function createTurnoRoutes(turnoController) {
      *         name: usuarioId
      *         required: true
      *         schema: { type: string }
-     *       - in: query
-     *         name: esMedico
-     *         schema: { type: boolean, default: false }
      *     requestBody:
      *       required: true
      *       content:

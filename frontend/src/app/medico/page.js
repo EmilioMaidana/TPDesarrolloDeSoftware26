@@ -12,6 +12,8 @@ import {
   aceptarTurno,
   marcarRealizado,
   cancelarTurno,
+  proponerReprogramacion,
+  confirmarReprogramacion,
   altaServicio,
   bajaServicio,
   crearDisponibilidad,
@@ -100,7 +102,7 @@ export default function MedicoPage() {
             <Spinner ink /> <span className="muted">Cargando…</span>
           </div>
         ) : tab === "agenda" ? (
-          <Agenda medicoId={usuario.id} exito={exito} error={error} />
+          <Agenda medicoId={usuario.id} usuarioId={usuario.usuarioId} exito={exito} error={error} />
         ) : tab === "servicios" ? (
           <Servicios
             medico={medico}
@@ -124,12 +126,13 @@ export default function MedicoPage() {
 }
 
 /* ---------------- Agenda ---------------- */
-function Agenda({ medicoId, exito, error }) {
+function Agenda({ medicoId, usuarioId, exito, error }) {
   const [estado, setEstado] = useState("");
   const [turnos, setTurnos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [dialogo, setDialogo] = useState(null);
+  const [dialogo, setDialogo] = useState(null); // { tipo: 'cancelar'|'reprogramar', turno }
   const [motivo, setMotivo] = useState("");
+  const [nuevaFecha, setNuevaFecha] = useState("");
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -173,13 +176,39 @@ function Agenda({ medicoId, exito, error }) {
       return;
     }
     try {
-      await cancelarTurno(dialogo._id, medicoId, motivo, true);
+      await cancelarTurno(dialogo.turno._id, usuarioId, motivo);
       exito("Turno cancelado. Se notificó al paciente.");
       setDialogo(null);
       setMotivo("");
       cargar();
     } catch (e) {
       error(mensajeDeError(e, "No se pudo cancelar el turno"));
+    }
+  }
+
+  async function reprogramar() {
+    if (!nuevaFecha) {
+      error("Elegí una nueva fecha y hora.");
+      return;
+    }
+    try {
+      await proponerReprogramacion(dialogo.turno._id, usuarioId, new Date(nuevaFecha).toISOString());
+      exito("Solicitud de cambio de fecha enviada. Queda pendiente de confirmación del paciente.");
+      setDialogo(null);
+      setNuevaFecha("");
+      cargar();
+    } catch (e) {
+      error(mensajeDeError(e, "No se pudo enviar la propuesta de reprogramación"));
+    }
+  }
+
+  async function confirmarCambio(t) {
+    try {
+      await confirmarReprogramacion(t._id, usuarioId);
+      exito("Nueva fecha confirmada.");
+      cargar();
+    } catch (e) {
+      error(mensajeDeError(e, "No se pudo confirmar la reprogramación"));
     }
   }
 
@@ -197,6 +226,7 @@ function Agenda({ medicoId, exito, error }) {
           <option value="DISPONIBLE">Disponibles</option>
           <option value="RESERVADO">Reservados</option>
           <option value="CONFIRMADO">Confirmados</option>
+          <option value="PENDIENTE_CONFIRMACION">Pendientes de confirmación</option>
           <option value="REALIZADO">Realizados</option>
           <option value="CANCELADO">Cancelados</option>
         </select>
@@ -223,7 +253,14 @@ function Agenda({ medicoId, exito, error }) {
             <tbody>
               {turnos.map((t) => (
                 <tr key={t._id}>
-                  <td>{formatearFechaHora(t.fechaHora)}</td>
+                  <td>
+                    {formatearFechaHora(t.fechaHora)}
+                    {t.fechaPropuesta && (
+                      <div className="muted" style={{ fontSize: "0.78rem" }}>
+                        Nueva fecha propuesta: {formatearFechaHora(t.fechaPropuesta)}
+                      </div>
+                    )}
+                  </td>
                   <td>
                     {t.servicio?.nombre}
                     <div className="muted" style={{ fontSize: "0.78rem" }}>{t.servicioTipo}</div>
@@ -233,7 +270,7 @@ function Agenda({ medicoId, exito, error }) {
                     <span className={claseEstado(t.estado)}>{t.estado}</span>
                   </td>
                   <td className="text-right">
-                    <div className="row" style={{ justifyContent: "flex-end" }}>
+                    <div className="row" style={{ justifyContent: "flex-end", flexWrap: "wrap", gap: 4 }}>
                       {t.estado === "RESERVADO" && (
                         <button className="btn btn--primary btn--sm" onClick={() => aceptar(t)}>
                           Aceptar
@@ -245,15 +282,37 @@ function Agenda({ medicoId, exito, error }) {
                             Realizado
                           </button>
                           <button
+                            className="btn btn--ghost btn--sm"
+                            onClick={() => {
+                              setNuevaFecha("");
+                              setDialogo({ tipo: "reprogramar", turno: t });
+                            }}
+                          >
+                            Cambiar fecha
+                          </button>
+                          <button
                             className="btn btn--danger btn--sm"
                             onClick={() => {
                               setMotivo("");
-                              setDialogo(t);
+                              setDialogo({ tipo: "cancelar", turno: t });
                             }}
                           >
                             Cancelar
                           </button>
                         </>
+                      )}
+                      {t.estado === "PENDIENTE_CONFIRMACION" && t.solicitadoPor !== usuarioId && (
+                        <button
+                          className="btn btn--primary btn--sm"
+                          onClick={() => confirmarCambio(t)}
+                        >
+                          Confirmar nueva fecha
+                        </button>
+                      )}
+                      {t.estado === "PENDIENTE_CONFIRMACION" && t.solicitadoPor === usuarioId && (
+                        <span className="muted" style={{ fontSize: "0.85rem" }}>
+                          Esperando confirmación del paciente
+                        </span>
                       )}
                     </div>
                   </td>
@@ -265,26 +324,45 @@ function Agenda({ medicoId, exito, error }) {
       )}
 
       {dialogo && (
-        <Modal titulo="Cancelar turno" onClose={() => setDialogo(null)}>
-          <div className="field">
-            <label htmlFor="motivoMed">Motivo</label>
-            <textarea
-              id="motivoMed"
-              className="input"
-              rows={3}
-              value={motivo}
-              onChange={(e) => setMotivo(e.target.value)}
-            />
-            <p className="muted" style={{ fontSize: "0.82rem" }}>
-              Debe cancelarse con al menos 1 hora de anticipación.
-            </p>
-          </div>
+        <Modal
+          titulo={dialogo.tipo === "cancelar" ? "Cancelar turno" : "Solicitar cambio de fecha"}
+          onClose={() => setDialogo(null)}
+        >
+          {dialogo.tipo === "cancelar" ? (
+            <div className="field">
+              <label htmlFor="motivoMed">Motivo</label>
+              <textarea
+                id="motivoMed"
+                className="input"
+                rows={3}
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+              />
+              <p className="muted" style={{ fontSize: "0.82rem" }}>
+                Debe cancelarse con al menos 1 hora de anticipación.
+              </p>
+            </div>
+          ) : (
+            <div className="field">
+              <label htmlFor="nuevaFechaMed">Nueva fecha y hora</label>
+              <input
+                id="nuevaFechaMed"
+                type="datetime-local"
+                className="input"
+                value={nuevaFecha}
+                onChange={(e) => setNuevaFecha(e.target.value)}
+              />
+            </div>
+          )}
           <div className="row row--between mt-16">
             <button className="btn btn--ghost" onClick={() => setDialogo(null)}>
               Volver
             </button>
-            <button className="btn btn--danger" onClick={cancelar}>
-              Cancelar turno
+            <button
+              className={`btn ${dialogo.tipo === "cancelar" ? "btn--danger" : "btn--primary"}`}
+              onClick={dialogo.tipo === "cancelar" ? cancelar : reprogramar}
+            >
+              {dialogo.tipo === "cancelar" ? "Cancelar turno" : "Enviar propuesta"}
             </button>
           </div>
         </Modal>

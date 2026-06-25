@@ -69,11 +69,11 @@ export async function reservarTurno(turnoId, pacienteId) {
   return data;
 }
 
-export async function cancelarTurno(turnoId, usuarioId, motivo, esMedico = false) {
+export async function cancelarTurno(turnoId, usuarioId, motivo) {
   const { data } = await api.post(
     `/turnos/${turnoId}/cancelar`,
     { motivo },
-    { params: { usuarioId, esMedico } }
+    { params: { usuarioId } }
   );
   return data;
 }
@@ -167,12 +167,12 @@ export async function bajaServicio(medicoId, tipo, servicioId) {
 // ---------- Notificaciones ----------
 
 export async function getNotificacionesNoLeidas(usuarioId) {
-  const { data } = await api.get(`/notificaciones/no-leidas/${usuarioId}`);
+  const { data } = await api.get(`/notificaciones/${usuarioId}?leidas=false`);
   return data;
 }
 
 export async function getNotificacionesLeidas(usuarioId) {
-  const { data } = await api.get(`/notificaciones/leidas/${usuarioId}`);
+  const { data } = await api.get(`/notificaciones/${usuarioId}?leidas=true`);
   return data;
 }
 

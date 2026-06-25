@@ -56,7 +56,7 @@ export class TurnoController {
     // POST /api/turnos/:id/cancelar?usuarioId=...&esMedico=false
     async cancelar(req, res, next) {
         try {
-            const { usuarioId, esMedico } = req.query;
+            const { usuarioId } = req.query;
             const { motivo } = req.body;
             if (!usuarioId) {
                 return res.status(400).json({ message: 'El parámetro usuarioId es obligatorio' });
@@ -64,7 +64,7 @@ export class TurnoController {
             if (!motivo) {
                 return res.status(400).json({ message: 'El motivo es obligatorio' });
             }
-            const turno = await this.turnoService.cancelar(req.params.id, usuarioId, motivo, esMedico === 'true');
+            const turno = await this.turnoService.cancelar(req.params.id, usuarioId, motivo);
             res.json({ message: 'Turno cancelado exitosamente', turno });
         } catch (error) {
             next(error);

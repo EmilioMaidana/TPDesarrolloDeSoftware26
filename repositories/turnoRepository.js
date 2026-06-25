@@ -3,9 +3,7 @@ import { DiaSemanaNumero, EstadoTurno } from "../domain/Enums.js";
 
 export class TurnoRepository {
 
-    async findAll() {
-        return await TurnoModel.find({ eliminado: false });
-    }
+
 
     async findById(id) {
         return await TurnoModel.findOne({ _id: id, eliminado: false });
@@ -18,27 +16,7 @@ export class TurnoRepository {
             .populate('servicio');
     }
 
-    async save(turnoData) {
-        const turno = new TurnoModel(turnoData);
-        return await turno.save();
-    }
 
-    async update(id, data) {
-        return await TurnoModel.findByIdAndUpdate(id, data, { new: true, runValidators: true });
-    }
-
-    async softDelete(id) {
-        return await TurnoModel.findByIdAndUpdate(id, { eliminado: true }, { new: true });
-    }
-
-    async findByMedicoAndFecha(medicoId, fechaHora) {
-        return await TurnoModel.findOne({
-            medico: medicoId,
-            fechaHora: fechaHora,
-            eliminado: false,
-            estado: { $ne: EstadoTurno.CANCELADO }
-        });
-    }
 
     // Búsqueda de turnos disponibles con filtros, paginación y ordenamiento
     async buscarDisponibles({ medicoId, especialidadId, practicaId, sede, fechaInicio, fechaFin } = {}, page = 1, limit = 10, sortBy = 'fechaHora', order = 'asc') {

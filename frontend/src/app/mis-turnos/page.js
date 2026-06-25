@@ -63,7 +63,7 @@ export default function MisTurnosPage() {
           setEnviando(false);
           return;
         }
-        await cancelarTurno(turno._id, usuario.usuarioId, valor, false);
+        await cancelarTurno(turno._id, usuario.usuarioId, valor);
         exito("Turno cancelado.");
       } else if (tipo === "reprogramar") {
         if (!valor) {
@@ -175,13 +175,18 @@ export default function MisTurnosPage() {
                     </button>
                   </>
                 )}
-                {t.estado === "PENDIENTE_CONFIRMACION" && (
+                {t.estado === "PENDIENTE_CONFIRMACION" && t.solicitadoPor !== usuario.usuarioId && (
                   <button
                     className="btn btn--primary btn--sm"
                     onClick={() => confirmarCambio(t)}
                   >
                     Confirmar nueva fecha
                   </button>
+                )}
+                {t.estado === "PENDIENTE_CONFIRMACION" && t.solicitadoPor === usuario.usuarioId && (
+                  <span className="muted" style={{ fontSize: "0.85rem" }}>
+                    Esperando confirmación del médico
+                  </span>
                 )}
               </div>
             </div>

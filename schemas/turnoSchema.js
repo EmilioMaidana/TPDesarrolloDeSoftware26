@@ -71,6 +71,10 @@ const turnoSchema = new mongoose.Schema({
     type: Date,
   },
 
+  solicitadoPor: {
+    type: String,
+  },
+
   eliminado: {
     type: Boolean,
     default: false,

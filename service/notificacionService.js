@@ -1,4 +1,4 @@
-import { NotFoundError } from "../errors/AppErrors.js";
+import { BadRequestError, NotFoundError } from "../errors/AppErrors.js";
 
 export class NotificacionService {
 
@@ -17,13 +17,11 @@ export class NotificacionService {
         }
 
         if (notificacion.leida) {
-            throw new Error('La notificación ya fue leída');
+            throw new BadRequestError('La notificación ya se encuentra leída');
         }
 
         return await this.notificacionRepository.marcarComoLeida(notificacionId);
     }
 
-    async crearNotificacion(data) {
-        return await this.notificacionRepository.save(data);
-    }
+
 }
