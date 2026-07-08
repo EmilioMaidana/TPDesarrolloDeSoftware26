@@ -1,101 +1,99 @@
-// src/app.js
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import router from "./src/routes/router.js"
-// para correr por primera vez y que no de problemas, chequear que las librerias esten instaladas correctamente
-// errores del tipo MODULE NOT FOUND 
-// npm install cors dotenv express
-//para correr npm run start(si no funca mandale un node app.js y fue. O te podes fijar en el package.json)
-// para tests instalar jest: npm install --save-dev jest
-//npm install --save-dev babel-jest @babel/core @babel/preset-env instalar esto para que jest ande con la forma module
+import express from 'express';
+import cors from 'cors';
+import swaggerUi from 'swagger-ui-express';
+import './schemas/registerModels.js'; // registra todos los modelos antes de los populates
+import { swaggerSpec } from './config/swagger.js';
+import { createRouter } from './routes/router.js';
+import { notFoundHandler } from './middlewares/notFoundHandler.js';
+import { errorLogger } from './middlewares/errorLogger.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
-dotenv.config()
+// Repositories
+import { TurnoRepository } from './repositories/turnoRepository.js';
+import { MedicoRepository } from './repositories/medicoRepository.js';
+import { PacienteRepository } from './repositories/pacienteRepository.js';
+import { NotificacionRepository } from './repositories/notificacionRepository.js';
+import { ServicioRepository } from './repositories/servicioRepository.js';
+import { UsuarioRepository } from './repositories/usuarioRepository.js';
 
+// Services
+import { TurnoService } from './service/turnoService.js';
+import { NotificacionService } from './service/notificacionService.js';
+import { ServicioService } from './service/servicioService.js';
+import { DisponibilidadService } from './service/disponibilidadService.js';
+import { MedicoService } from './service/medicoService.js';
+import { PacienteService } from './service/pacienteService.js';
+import { AuthService } from './service/authService.js';
 
+// Controllers
+import { TurnoController } from './controllers/turnoController.js';
+import { NotificacionController } from './controllers/notificacionController.js';
+import { ServicioController } from './controllers/servicioController.js';
+import { DisponibilidadController } from './controllers/disponibilidadController.js';
+import { MedicoController } from './controllers/medicoController.js';
+import { PacienteController } from './controllers/pacienteController.js';
+import { AuthController } from './controllers/authController.js';
+
+// === Inyección de Dependencias ===
+
+// Repositories
+const turnoRepository = new TurnoRepository();
+const medicoRepository = new MedicoRepository();
+const pacienteRepository = new PacienteRepository();
+const notificacionRepository = new NotificacionRepository();
+const servicioRepository = new ServicioRepository();
+const usuarioRepository = new UsuarioRepository();
+
+// Services
+const turnoService = new TurnoService(turnoRepository, pacienteRepository, medicoRepository, notificacionRepository);
+const notificacionService = new NotificacionService(notificacionRepository);
+const servicioService = new ServicioService(servicioRepository, medicoRepository);
+const disponibilidadService = new DisponibilidadService(medicoRepository, turnoRepository, servicioRepository);
+const medicoService = new MedicoService(medicoRepository);
+const pacienteService = new PacienteService(pacienteRepository);
+const authService = new AuthService(usuarioRepository, pacienteRepository, medicoRepository);
+
+// Controllers
+const turnoController = new TurnoController(turnoService);
+const notificacionController = new NotificacionController(notificacionService);
+const servicioController = new ServicioController(servicioService);
+const disponibilidadController = new DisponibilidadController(disponibilidadService);
+const medicoController = new MedicoController(medicoService);
+const pacienteController = new PacienteController(pacienteService);
+const authController = new AuthController(authService);
+
+// === App Express ===
 const app = express();
-const PORT = process.env.PORT || 43123; //como tenemos el archivo .env y declaramos el dotenv.config() levanta el puerto desde el .env y no el 43123
 
-// Permite que Express entienda JSON en el body de las peticiones
+// Middlewares globales
+app.use(cors());
 app.use(express.json());
 
-app.use('/api', router);
-// Endpoint /api/health en router
+// Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'SweetMedical API - Documentación'
+}));
 
-
-// Levantar el servidor
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    console.log(`Health check disponible en http://localhost:${PORT}/api/health`);
-});
-/*
-
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+// Redirigir la raíz a la documentación
+app.get('/', (req, res) => {
+    res.redirect('/api-docs');
 });
 
-*/
+// Rutas API
+app.use('/api', createRouter({
+    turnoController,
+    notificacionController,
+    disponibilidadController,
+    servicioController,
+    medicoController,
+    pacienteController,
+    authController
+}));
 
-app.post('/api/turnos', (req, res) => {
-    try {
-        //const body = req.body;
-        const { 
-            medicoId, 
-            pacienteId, 
-            fechaHora, 
-            sedeId, 
-            servicio,
-            estado = "RESERVADO" 
-        } = req.body;
-        
-        const result = productSchema.safeParse(body);
-        if (result.error) {
-            res.status(400);
-            res.json(result.error.issues);
-        }
-        
-        const medico = buscarMedicoPorId(medicoId);
-        const paciente = buscarPacientePorId(pacienteId);
+// Middlewares de error (orden importa)
+app.use(notFoundHandler);
+app.use(errorLogger);
+app.use(errorHandler);
 
-         if (medico === NULL || paciente === NULL) {
-            return res.status(404).json({
-                success: false,
-                message: 'Médico o paciente no encontrado'
-            });
-        }
-        
-        // Crear turno
-        const nuevoTurno = new Turno(
-            medico,
-            paciente,
-            fechaHora,
-            sedeId,
-            servicio,
-            estado,
-            [],
-            calcularCosto(servicio, medico, paciente)
-        );
-        
-        res.status(201).json({
-            success: true,
-            message: 'Turno creado exitosamente',
-            data: nuevoTurno
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Error al crear el turno',
-            error: error.message
-        });
-    }
-});
-
-function buscarMedicoPorId(id) {
-    return listaDeMedicos.find(m => m.id === id);
-}
-
-function buscarPacientePorId(id) {
-    return listaDePacientes.find(p => p.id === id);
-}
-
-export default app
+export default app;

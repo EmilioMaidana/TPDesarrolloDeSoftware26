@@ -1,0 +1,98 @@
+import mongoose from "mongoose";
+import { MedicoModel } from "../schemas/medicoSchema.js";
+
+export class MedicoRepository {
+
+    async findAll() {
+        return await MedicoModel.find({ eliminado: false })
+            .populate('especialidades')
+            .populate('practicas');
+    }
+
+    async findById(id) {
+        return await MedicoModel.findOne({ _id: id, eliminado: false });
+    }
+
+    async findByIdPopulated(id) {
+        return await MedicoModel.findOne({ _id: id, eliminado: false })
+            .populate('especialidades')
+            .populate('practicas')
+            .populate('usuario');
+    }
+
+    async findByUsuario(usuarioId) {
+        return await MedicoModel.findOne({ usuario: usuarioId, eliminado: false });
+    }
+
+    async actualizarDisponibilidad(id, disponibilidades) {
+        return await MedicoModel.findByIdAndUpdate(
+            id,
+            { disponibilidades },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async actualizarDisponibilidadPorId(medicoId, disponibilidadId, disponibilidad) {
+        return await MedicoModel.findOneAndUpdate(
+            {
+                _id: medicoId,
+                eliminado: false,
+                "disponibilidades._id": disponibilidadId
+            },
+            {
+                $set: {
+                    "disponibilidades.$": {
+                        ...disponibilidad,
+                        _id: disponibilidadId
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async actualizarDisponibilidadPorIndice(medicoId, disponibilidadIndex, disponibilidad) {
+        return await MedicoModel.findOneAndUpdate(
+            {
+                _id: medicoId,
+                eliminado: false,
+                [`disponibilidades.${disponibilidadIndex}`]: { $exists: true }
+            },
+            {
+                $set: {
+                    [`disponibilidades.${disponibilidadIndex}`]: {
+                        ...disponibilidad,
+                        _id: disponibilidad._id || new mongoose.Types.ObjectId()
+                    }
+                }
+            },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async agregarDisponibilidad(id, disponibilidad) {
+        return await MedicoModel.findByIdAndUpdate(
+            id,
+            { $push: { disponibilidades: disponibilidad } },
+            { new: true, runValidators: true }
+        );
+    }
+
+    async agregarServicio(medicoId, tipo, servicioId) {
+        const campo = tipo === 'Especialidad' ? 'especialidades' : 'practicas';
+        return await MedicoModel.findByIdAndUpdate(
+            medicoId,
+            { $addToSet: { [campo]: servicioId } },
+            { new: true }
+        );
+    }
+
+    async quitarServicio(medicoId, tipo, servicioId) {
+        const campo = tipo === 'Especialidad' ? 'especialidades' : 'practicas';
+        return await MedicoModel.findByIdAndUpdate(
+            medicoId,
+            { $pull: { [campo]: servicioId } },
+            { new: true }
+        );
+    }
+}

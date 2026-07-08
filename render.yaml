@@ -1,0 +1,20 @@
+# Infraestructura como código para Render (backend).
+# Las variables marcadas con sync:false se cargan a mano en el dashboard
+# (son secretas / dependientes del entorno).
+services:
+  - type: web
+    name: sweet-medical-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGODB_DB_NAME
+        value: SweetMedical
+      - key: BATCH_DAYS_AHEAD
+        value: "14"
+      - key: MONGODB_URI
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
