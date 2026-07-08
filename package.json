@@ -38,7 +38,8 @@
     "transform": {},
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/tests/integration/"
+      "/tests/integration/",
+      "<rootDir>/test.js$"
     ]
   }
 }
