@@ -11,8 +11,13 @@ import { NotificacionModel } from './schemas/notificacionSchema.js';
 import { EstadoTurno, NivelCobertura, DiaSemana } from './domain/Enums.js';
 
 async function runSeed() {
-    console.log("Conectando a mongodb://127.0.0.1:27018/SweetMedical...");
-    await mongoose.connect('mongodb://127.0.0.1:27018/SweetMedical', { authSource: 'admin' });
+    const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27018';
+    const dbName = process.env.MONGODB_DB_NAME || 'SweetMedical';
+    
+    console.log(`Conectando a base de datos...`);
+    await mongoose.connect(uri, { 
+        dbName: dbName
+    });
     console.log("✅ Conectado!");
 
     console.log("Limpiando colecciones...");
