@@ -1,6 +1,6 @@
 import express from 'express';
 
-export function createMedicoRoutes(disponibilidadController, servicioController, medicoController) {
+export function createMedicoRoutes(disponibilidadController, servicioController, medicoController, turnoController) {
     const router = express.Router();
 
     /**
@@ -14,6 +14,31 @@ export function createMedicoRoutes(disponibilidadController, servicioController,
      *         description: Lista de medicos
      */
     router.get('/', (req, res, next) => medicoController.listar(req, res, next));
+
+    /**
+     * @swagger
+     * /api/medicos/{medicoId}/turnos:
+     *   get:
+     *     summary: Listar los turnos (agenda) de un medico
+     *     tags: [Médicos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *       - in: query
+     *         name: estado
+     *         schema: { type: string, enum: [DISPONIBLE, RESERVADO, CONFIRMADO, PENDIENTE_CONFIRMACION, REALIZADO, CANCELADO] }
+     *         description: Filtrar por estado del turno
+     *       - in: query
+     *         name: pacienteId
+     *         schema: { type: string }
+     *         description: Filtrar por paciente (historial de un paciente con este medico)
+     *     responses:
+     *       200:
+     *         description: Turnos del medico
+     */
+    router.get('/:medicoId/turnos', (req, res, next) => turnoController.turnosDeMedico(req, res, next));
 
     /**
      * @swagger

@@ -221,30 +221,22 @@ export class TurnoService {
         return turno;
     }
 
-    // Agenda completa de un médico (para aceptar/cancelar/marcar realizado)
-    async obtenerAgendaMedico(medicoId, estado = null) {
+    // Turnos de un médico (su agenda). Se puede filtrar por estado y por paciente
+    // (ese último caso cubre "el historial de un paciente visto por el médico").
+    async obtenerTurnosDeMedico(medicoId, { estado = null, pacienteId = null } = {}) {
         const medico = await this.medicoRepository.findById(medicoId);
         if (!medico) {
             throw new NotFoundError('Médico no encontrado');
         }
-        return await this.turnoRepository.findByMedico(medicoId, estado);
+        return await this.turnoRepository.findByMedico(medicoId, estado, pacienteId);
     }
 
     // Historial de turnos de un paciente
-    async obtenerHistorialPaciente(pacienteId) {
+    async obtenerTurnosDePaciente(pacienteId) {
         const paciente = await this.pacienteRepository.findById(pacienteId);
         if (!paciente) {
             throw new NotFoundError('Paciente no encontrado');
         }
         return await this.turnoRepository.findByPaciente(pacienteId);
-    }
-
-    // Historial de un paciente visto por un médico
-    async obtenerHistorialPacienteParaMedico(medicoId, pacienteId) {
-        const medico = await this.medicoRepository.findById(medicoId);
-        if (!medico) {
-            throw new NotFoundError('Médico no encontrado');
-        }
-        return await this.turnoRepository.findByMedicoAndPaciente(medicoId, pacienteId);
     }
 }

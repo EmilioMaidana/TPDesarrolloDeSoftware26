@@ -1,24 +1,29 @@
 "use client";
 
 import Link from "next/link";
-import { UserSwitcher } from "@/components/UserSwitcher";
+import { useSession } from "@/context/SessionContext";
 
 export default function HomePage() {
+  const { usuario, esMedico } = useSession();
+  const ctaHref = usuario ? (esMedico ? "/medico" : "/buscar") : "/login";
+  const ctaLabel = usuario ? "Ir a mi panel" : "Iniciar sesión";
+
   return (
     <div className="container page">
       <section className="hero">
+        <span className="hero__eyebrow">Turnos médicos online</span>
         <h1>Reservá tu turno médico en pocos clics</h1>
         <p>
           Buscá profesionales por especialidad, práctica o sede y conocé al
           instante cuánto vas a pagar según tu obra social y plan.
         </p>
-        <div className="row mt-16">
-          <Link href="/buscar" className="btn btn--primary">
-            Buscar turnos
+        <div className="row mt-24">
+          <Link href={ctaHref} className="btn btn--primary btn--lg">
+            {ctaLabel}
           </Link>
-          <a href="#ingresar" className="btn btn--ghost">
-            Elegir mi usuario
-          </a>
+          <Link href="/buscar" className="btn btn--ghost btn--lg">
+            Ver turnos disponibles
+          </Link>
         </div>
       </section>
 
@@ -35,14 +40,6 @@ export default function HomePage() {
         <Feature ico="🔔" titulo="Notificaciones">
           Enterate de confirmaciones, cancelaciones y recordatorios.
         </Feature>
-      </section>
-
-      <section id="ingresar" className="mt-24">
-        <div className="page__head">
-          <h2>Ingresá a la demo</h2>
-          <p>Elegí un usuario para comenzar a operar.</p>
-        </div>
-        <UserSwitcher />
       </section>
     </div>
   );

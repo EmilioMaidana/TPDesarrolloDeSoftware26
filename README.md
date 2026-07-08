@@ -169,8 +169,8 @@ Con el backend levantado, la documentación interactiva está en
 | PATCH | `/api/turnos/:id/reprogramar` | Proponer cambio de fecha |
 | PATCH | `/api/turnos/:id/confirmar-reprogramacion` | Confirmar cambio de fecha |
 | PATCH | `/api/turnos/:id/realizado` | Marcar realizado (médico) |
-| GET | `/api/turnos/medico/:medicoId` | Agenda del médico |
-| GET | `/api/turnos/historial/paciente/:pacienteId` | Historial del paciente |
+| GET | `/api/medicos/:medicoId/turnos` | Agenda del médico (`?estado=`, `?pacienteId=`) |
+| GET | `/api/pacientes/:pacienteId/turnos` | Historial de turnos del paciente |
 | GET/POST/PUT | `/api/medicos/:id/disponibilidad` | Gestión de disponibilidad |
 | GET/POST/DELETE | `/api/medicos/:id/servicios` | Servicios del médico |
 | GET/POST/PUT/DELETE | `/api/servicios/especialidades`, `/api/servicios/practicas` | ABM de servicios |

@@ -1,6 +1,6 @@
 import express from 'express';
 
-export function createPacienteRoutes(pacienteController) {
+export function createPacienteRoutes(pacienteController, turnoController) {
     const router = express.Router();
 
     /**
@@ -14,6 +14,23 @@ export function createPacienteRoutes(pacienteController) {
      *         description: Lista de pacientes
      */
     router.get('/', (req, res, next) => pacienteController.listar(req, res, next));
+
+    /**
+     * @swagger
+     * /api/pacientes/{pacienteId}/turnos:
+     *   get:
+     *     summary: Listar los turnos (historial) de un paciente
+     *     tags: [Pacientes]
+     *     parameters:
+     *       - in: path
+     *         name: pacienteId
+     *         required: true
+     *         schema: { type: string }
+     *     responses:
+     *       200:
+     *         description: Historial de turnos del paciente
+     */
+    router.get('/:pacienteId/turnos', (req, res, next) => turnoController.turnosDePaciente(req, res, next));
 
     /**
      * @swagger

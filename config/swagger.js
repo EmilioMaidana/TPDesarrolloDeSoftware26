@@ -15,6 +15,7 @@ const options = {
       },
     ],
     tags: [
+      { name: 'Auth', description: 'Autenticación de usuarios' },
       { name: 'Turnos', description: 'Gestión del ciclo de vida de turnos' },
       { name: 'Búsqueda', description: 'Búsqueda de turnos disponibles con cotización' },
       { name: 'Médicos', description: 'Gestión de disponibilidad y servicios médicos' },

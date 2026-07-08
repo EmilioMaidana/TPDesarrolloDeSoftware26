@@ -128,34 +128,21 @@ export class TurnoController {
         }
     }
 
-    // GET /api/turnos/medico/:medicoId?estado=...
-    async agendaMedico(req, res, next) {
+    // GET /api/medicos/:medicoId/turnos?estado=...&pacienteId=...
+    async turnosDeMedico(req, res, next) {
         try {
-            const { estado } = req.query;
-            const turnos = await this.turnoService.obtenerAgendaMedico(req.params.medicoId, estado);
+            const { estado, pacienteId } = req.query;
+            const turnos = await this.turnoService.obtenerTurnosDeMedico(req.params.medicoId, { estado, pacienteId });
             res.json(turnos);
         } catch (error) {
             next(error);
         }
     }
 
-    // GET /api/turnos/historial/paciente/:pacienteId
-    async historialPaciente(req, res, next) {
+    // GET /api/pacientes/:pacienteId/turnos
+    async turnosDePaciente(req, res, next) {
         try {
-            const turnos = await this.turnoService.obtenerHistorialPaciente(req.params.pacienteId);
-            res.json(turnos);
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    // GET /api/turnos/historial/medico/:medicoId/paciente/:pacienteId
-    async historialPacienteParaMedico(req, res, next) {
-        try {
-            const turnos = await this.turnoService.obtenerHistorialPacienteParaMedico(
-                req.params.medicoId,
-                req.params.pacienteId
-            );
+            const turnos = await this.turnoService.obtenerTurnosDePaciente(req.params.pacienteId);
             res.json(turnos);
         } catch (error) {
             next(error);

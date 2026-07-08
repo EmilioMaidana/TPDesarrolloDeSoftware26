@@ -4,6 +4,7 @@ import { createNotificacionRoutes } from './notificacionRoutes.js';
 import { createMedicoRoutes } from './medicoRoutes.js';
 import { createServicioRoutes } from './servicioRoutes.js';
 import { createPacienteRoutes } from './pacienteRoutes.js';
+import { createAuthRoutes } from './authRoutes.js';
 
 export function createRouter(controllers) {
     const router = express.Router();
@@ -14,15 +15,17 @@ export function createRouter(controllers) {
         disponibilidadController,
         servicioController,
         medicoController,
-        pacienteController
+        pacienteController,
+        authController
     } = controllers;
 
     // Montar sub-routers
+    router.use('/auth', createAuthRoutes(authController));
     router.use('/turnos', createTurnoRoutes(turnoController));
     router.use('/notificaciones', createNotificacionRoutes(notificacionController));
-    router.use('/medicos', createMedicoRoutes(disponibilidadController, servicioController, medicoController));
+    router.use('/medicos', createMedicoRoutes(disponibilidadController, servicioController, medicoController, turnoController));
     router.use('/servicios', createServicioRoutes(servicioController));
-    router.use('/pacientes', createPacienteRoutes(pacienteController));
+    router.use('/pacientes', createPacienteRoutes(pacienteController, turnoController));
 
     /**
      * @swagger

@@ -97,6 +97,18 @@ export default function BuscarPage() {
     setAplicados(form);
   }
 
+  // Click en un criterio de orden: si ya está activo, invierte el sentido;
+  // si no, lo activa en ascendente.
+  function cambiarOrden(campo) {
+    if (sortBy === campo) {
+      setOrder((o) => (o === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(campo);
+      setOrder("asc");
+    }
+    setPage(1);
+  }
+
   function limpiar() {
     setForm(FILTROS_INICIALES);
     setAplicados(FILTROS_INICIALES);
@@ -133,8 +145,8 @@ export default function BuscarPage() {
           titulo="Ingresá como paciente"
           detalle="Para buscar turnos según tu cobertura primero elegí tu perfil de paciente."
         >
-          <Link href="/" className="btn btn--primary">
-            Elegir usuario
+          <Link href="/login" className="btn btn--primary">
+            Iniciar sesión
           </Link>
         </EmptyState>
       </div>
@@ -206,37 +218,14 @@ export default function BuscarPage() {
         </div>
 
         <div className="row row--between mt-16">
-          <div className="row">
-            <div className="field">
-              <label htmlFor="sortBy">Ordenar por</label>
-              <select
-                id="sortBy"
-                className="select"
-                value={sortBy}
-                onChange={(e) => {
-                  setSortBy(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="fechaHora">Fecha</option>
-                <option value="costo">Costo</option>
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="order">Sentido</label>
-              <select
-                id="order"
-                className="select"
-                value={order}
-                onChange={(e) => {
-                  setOrder(e.target.value);
-                  setPage(1);
-                }}
-              >
-                <option value="asc">Ascendente</option>
-                <option value="desc">Descendente</option>
-              </select>
-            </div>
+          <div className="orden" role="group" aria-label="Ordenar resultados">
+            <span className="orden__label">Ordenar por</span>
+            <SortChip activo={sortBy === "fechaHora"} order={order} onClick={() => cambiarOrden("fechaHora")}>
+              Fecha
+            </SortChip>
+            <SortChip activo={sortBy === "costo"} order={order} onClick={() => cambiarOrden("costo")}>
+              Costo
+            </SortChip>
           </div>
           <div className="row">
             <button type="button" className="btn btn--ghost" onClick={limpiar}>
@@ -322,6 +311,39 @@ export default function BuscarPage() {
         </>
       )}
     </div>
+  );
+}
+
+// Chip de ordenamiento con ícono de flecha: gris/tenue si está inactivo,
+// flecha hacia arriba (asc) o abajo (desc) cuando está activo.
+function SortChip({ activo, order, onClick, children }) {
+  const sentido = activo ? (order === "asc" ? "ascendente" : "descendente") : "";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`sort-chip ${activo ? "sort-chip--activo" : ""}`}
+      aria-pressed={activo}
+      title={`Ordenar por ${children}${sentido ? ` (${sentido})` : ""}`}
+    >
+      <span>{children}</span>
+      <svg
+        className={`sort-chip__ico ${activo && order === "desc" ? "sort-chip__ico--desc" : ""}`}
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path
+          d="M12 5v14M12 5l-5 5M12 5l5 5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
   );
 }
 

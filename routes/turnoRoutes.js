@@ -59,65 +59,6 @@ export function createTurnoRoutes(turnoController) {
 
     /**
      * @swagger
-     * /api/turnos/historial/paciente/{pacienteId}:
-     *   get:
-     *     summary: Consultar historial de turnos de un paciente
-     *     tags: [Turnos]
-     *     parameters:
-     *       - in: path
-     *         name: pacienteId
-     *         required: true
-     *         schema: { type: string }
-     *     responses:
-     *       200:
-     *         description: Historial de turnos del paciente
-     */
-    router.get('/historial/paciente/:pacienteId', (req, res, next) => turnoController.historialPaciente(req, res, next));
-
-    /**
-     * @swagger
-     * /api/turnos/historial/medico/{medicoId}/paciente/{pacienteId}:
-     *   get:
-     *     summary: Médico consulta historial de turnos de un paciente
-     *     tags: [Turnos]
-     *     parameters:
-     *       - in: path
-     *         name: medicoId
-     *         required: true
-     *         schema: { type: string }
-     *       - in: path
-     *         name: pacienteId
-     *         required: true
-     *         schema: { type: string }
-     *     responses:
-     *       200:
-     *         description: Historial de turnos del paciente con el médico
-     */
-    router.get('/historial/medico/:medicoId/paciente/:pacienteId', (req, res, next) => turnoController.historialPacienteParaMedico(req, res, next));
-
-    /**
-     * @swagger
-     * /api/turnos/medico/{medicoId}:
-     *   get:
-     *     summary: Agenda de turnos de un medico
-     *     tags: [Turnos]
-     *     parameters:
-     *       - in: path
-     *         name: medicoId
-     *         required: true
-     *         schema: { type: string }
-     *       - in: query
-     *         name: estado
-     *         schema: { type: string, enum: [DISPONIBLE, RESERVADO, CONFIRMADO, REALIZADO, CANCELADO] }
-     *         description: Filtrar por estado del turno
-     *     responses:
-     *       200:
-     *         description: Turnos del medico
-     */
-    router.get('/medico/:medicoId', (req, res, next) => turnoController.agendaMedico(req, res, next));
-
-    /**
-     * @swagger
      * /api/turnos/{id}:
      *   get:
      *     summary: Obtener turno por ID

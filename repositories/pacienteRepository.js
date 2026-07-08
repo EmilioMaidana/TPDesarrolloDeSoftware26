@@ -28,6 +28,10 @@ export class PacienteRepository {
         return await PacienteModel.findOne(filtro);
     }
 
+    async findByUsuario(usuarioId) {
+        return await PacienteModel.findOne({ usuario: usuarioId, eliminado: false });
+    }
+
     async findByIdConPlan(id) {
         const filtro = this._buildIdentityFilter(id);
         if (!filtro) return null;

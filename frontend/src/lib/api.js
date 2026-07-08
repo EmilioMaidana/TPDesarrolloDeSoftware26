@@ -13,6 +13,13 @@ export function mensajeDeError(error, fallback = "Ocurrió un error inesperado")
   return fallback;
 }
 
+// ---------- Autenticación ----------
+
+export async function login(nombreUsuario, password) {
+  const { data } = await api.post("/auth/login", { nombreUsuario, password });
+  return data;
+}
+
 // ---------- Catálogo / lectura ----------
 
 export async function getMedicos() {
@@ -112,19 +119,19 @@ export async function confirmarReprogramacion(turnoId, usuarioId) {
 
 export async function getAgendaMedico(medicoId, estado) {
   const params = estado ? { estado } : {};
-  const { data } = await api.get(`/turnos/medico/${medicoId}`, { params });
+  const { data } = await api.get(`/medicos/${medicoId}/turnos`, { params });
   return data;
 }
 
 export async function getHistorialPaciente(pacienteId) {
-  const { data } = await api.get(`/turnos/historial/paciente/${pacienteId}`);
+  const { data } = await api.get(`/pacientes/${pacienteId}/turnos`);
   return data;
 }
 
 export async function getHistorialPacienteParaMedico(medicoId, pacienteId) {
-  const { data } = await api.get(
-    `/turnos/historial/medico/${medicoId}/paciente/${pacienteId}`
-  );
+  const { data } = await api.get(`/medicos/${medicoId}/turnos`, {
+    params: { pacienteId },
+  });
   return data;
 }
 

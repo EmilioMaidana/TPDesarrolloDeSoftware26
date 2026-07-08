@@ -14,6 +14,7 @@ import { MedicoRepository } from './repositories/medicoRepository.js';
 import { PacienteRepository } from './repositories/pacienteRepository.js';
 import { NotificacionRepository } from './repositories/notificacionRepository.js';
 import { ServicioRepository } from './repositories/servicioRepository.js';
+import { UsuarioRepository } from './repositories/usuarioRepository.js';
 
 // Services
 import { TurnoService } from './service/turnoService.js';
@@ -22,6 +23,7 @@ import { ServicioService } from './service/servicioService.js';
 import { DisponibilidadService } from './service/disponibilidadService.js';
 import { MedicoService } from './service/medicoService.js';
 import { PacienteService } from './service/pacienteService.js';
+import { AuthService } from './service/authService.js';
 
 // Controllers
 import { TurnoController } from './controllers/turnoController.js';
@@ -30,6 +32,7 @@ import { ServicioController } from './controllers/servicioController.js';
 import { DisponibilidadController } from './controllers/disponibilidadController.js';
 import { MedicoController } from './controllers/medicoController.js';
 import { PacienteController } from './controllers/pacienteController.js';
+import { AuthController } from './controllers/authController.js';
 
 // === Inyección de Dependencias ===
 
@@ -39,6 +42,7 @@ const medicoRepository = new MedicoRepository();
 const pacienteRepository = new PacienteRepository();
 const notificacionRepository = new NotificacionRepository();
 const servicioRepository = new ServicioRepository();
+const usuarioRepository = new UsuarioRepository();
 
 // Services
 const turnoService = new TurnoService(turnoRepository, pacienteRepository, medicoRepository, notificacionRepository);
@@ -47,6 +51,7 @@ const servicioService = new ServicioService(servicioRepository, medicoRepository
 const disponibilidadService = new DisponibilidadService(medicoRepository, turnoRepository, servicioRepository);
 const medicoService = new MedicoService(medicoRepository);
 const pacienteService = new PacienteService(pacienteRepository);
+const authService = new AuthService(usuarioRepository, pacienteRepository, medicoRepository);
 
 // Controllers
 const turnoController = new TurnoController(turnoService);
@@ -55,6 +60,7 @@ const servicioController = new ServicioController(servicioService);
 const disponibilidadController = new DisponibilidadController(disponibilidadService);
 const medicoController = new MedicoController(medicoService);
 const pacienteController = new PacienteController(pacienteService);
+const authController = new AuthController(authService);
 
 // === App Express ===
 const app = express();
@@ -81,7 +87,8 @@ app.use('/api', createRouter({
     disponibilidadController,
     servicioController,
     medicoController,
-    pacienteController
+    pacienteController,
+    authController
 }));
 
 // Middlewares de error (orden importa)

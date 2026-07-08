@@ -55,8 +55,8 @@ export default function NotificacionesPage() {
     return (
       <div className="container page">
         <EmptyState emoji="👤" titulo="Ingresá para ver tus notificaciones">
-          <Link href="/" className="btn btn--primary">
-            Elegir usuario
+          <Link href="/login" className="btn btn--primary">
+            Iniciar sesión
           </Link>
         </EmptyState>
       </div>

@@ -26,8 +26,8 @@ export default function CarritoPage() {
           titulo="Ingresá como paciente"
           detalle="La preselección de turnos está disponible para pacientes."
         >
-          <Link href="/" className="btn btn--primary">
-            Elegir usuario
+          <Link href="/login" className="btn btn--primary">
+            Iniciar sesión
           </Link>
         </EmptyState>
       </div>

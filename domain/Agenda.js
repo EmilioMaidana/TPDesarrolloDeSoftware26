@@ -75,7 +75,10 @@ export class Agenda {
 
                 for (const slot of slots) {
                     const [horaInicio, minInicio] = slot.inicio.split(':').map(Number);
-                    const fechaHora = new Date(Date.UTC(
+                    // La hora del slot es la hora "de pared" de la sede. La construimos como
+                    // fecha local para que Mongo guarde el instante UTC correcto; el cliente
+                    // luego la renderiza en su propio huso horario.
+                    const fechaHora = new Date(
                         fecha.getFullYear(),
                         fecha.getMonth(),
                         fecha.getDate(),
@@ -83,7 +86,7 @@ export class Agenda {
                         minInicio,
                         0,
                         0
-                    ));
+                    );
 
                     turnos.push({
                         medico: medico._id,

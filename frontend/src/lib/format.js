@@ -23,10 +23,11 @@ export function formatearFecha(fecha) {
 
 export function formatearHora(fecha) {
   if (!fecha) return "-";
+  // Sin timeZone fijo: se usa el huso horario local del navegador del usuario.
+  // El backend guarda el instante en UTC; acá se adapta a la zona del cliente.
   return new Date(fecha).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "UTC",
   });
 }
 

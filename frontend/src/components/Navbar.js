@@ -1,16 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useSession } from "@/context/SessionContext";
 import { useCarrito } from "@/context/CarritoContext";
 
 export function Navbar() {
-  const { usuario, esPaciente, esMedico } = useSession();
+  const { usuario, esPaciente, esMedico, cerrarSesion } = useSession();
   const { cantidad } = useCarrito();
   const pathname = usePathname();
+  const router = useRouter();
   const [abierto, setAbierto] = useState(false);
+
+  function salir() {
+    cerrarSesion();
+    setAbierto(false);
+    router.push("/login");
+  }
 
   const links = [{ href: "/", label: "Inicio" }, { href: "/buscar", label: "Buscar turnos" }];
   if (esPaciente) {
@@ -64,14 +71,25 @@ export function Navbar() {
 
           <span className="nav-spacer" />
 
-          <Link
-            href="/"
-            className="navlink"
-            onClick={() => setAbierto(false)}
-            title="Cambiar de usuario"
-          >
-            {usuario ? `👤 ${primerNombre(usuario.nombre)}` : "Elegir usuario"}
-          </Link>
+          {usuario ? (
+            <div className="nav-user">
+              <span className="nav-user__chip" title={usuario.nombre}>
+                <span aria-hidden="true">{esMedico ? "🩺" : "👤"}</span>
+                {primerNombre(usuario.nombre)}
+              </span>
+              <button type="button" className="btn btn--ghost btn--sm" onClick={salir}>
+                Salir
+              </button>
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="btn btn--primary btn--sm"
+              onClick={() => setAbierto(false)}
+            >
+              Iniciar sesión
+            </Link>
+          )}
         </nav>
       </div>
     </header>

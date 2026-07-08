@@ -1,6 +1,17 @@
 import { TurnoModel } from "../schemas/turnoSchema.js";
 import { DiaSemanaNumero, EstadoTurno } from "../domain/Enums.js";
 
+// Offset del huso horario local del server como string tipo "-03:00",
+// para usar en las agregaciones de Mongo ($dateToString / $dayOfWeek).
+function zonaHorariaLocal() {
+    const offsetMin = new Date().getTimezoneOffset(); // ej. 180 para UTC-3
+    const signo = offsetMin > 0 ? '-' : '+';
+    const abs = Math.abs(offsetMin);
+    const hh = String(Math.floor(abs / 60)).padStart(2, '0');
+    const mm = String(abs % 60).padStart(2, '0');
+    return `${signo}${hh}:${mm}`;
+}
+
 export class TurnoRepository {
 
 
@@ -68,10 +79,11 @@ export class TurnoRepository {
         };
     }
 
-    // Agenda de un médico (opcionalmente filtrada por estado)
-    async findByMedico(medicoId, estado = null) {
+    // Turnos de un médico (opcionalmente filtrados por estado y/o paciente)
+    async findByMedico(medicoId, estado = null, pacienteId = null) {
         const filtro = { medico: medicoId, eliminado: false };
         if (estado) filtro.estado = estado;
+        if (pacienteId) filtro.paciente = pacienteId;
         return await TurnoModel.find(filtro)
             .populate('paciente', 'nombre dni')
             .populate('servicio')
@@ -82,17 +94,6 @@ export class TurnoRepository {
     async findByPaciente(pacienteId) {
         return await TurnoModel.find({ paciente: pacienteId, eliminado: false })
             .populate('medico', 'nombre matricula')
-            .populate('servicio')
-            .sort({ fechaHora: -1 });
-    }
-
-    // Historial de turnos de un paciente visto por un médico
-    async findByMedicoAndPaciente(medicoId, pacienteId) {
-        return await TurnoModel.find({
-            medico: medicoId,
-            paciente: pacienteId,
-            eliminado: false
-        })
             .populate('servicio')
             .sort({ fechaHora: -1 });
     }
@@ -111,11 +112,14 @@ export class TurnoRepository {
     async eliminarDisponiblesFuturosPorDisponibilidad(medicoId, disponibilidad) {
         const ahora = new Date();
         const diaSemanaMongo = DiaSemanaNumero[disponibilidad.diaSemana] + 1;
+        // Los turnos se guardan en UTC pero representan la hora local de la sede;
+        // comparamos el día y la hora en ese mismo huso horario local.
+        const tz = zonaHorariaLocal();
         const horaDelTurno = {
             $dateToString: {
                 format: "%H:%M",
                 date: "$fechaHora",
-                timezone: "UTC"
+                timezone: tz
             }
         };
 
@@ -128,7 +132,7 @@ export class TurnoRepository {
             eliminado: false,
             $expr: {
                 $and: [
-                    { $eq: [{ $dayOfWeek: "$fechaHora" }, diaSemanaMongo] },
+                    { $eq: [{ $dayOfWeek: { date: "$fechaHora", timezone: tz } }, diaSemanaMongo] },
                     { $gte: [horaDelTurno, disponibilidad.horaDesde] },
                     { $lt: [horaDelTurno, disponibilidad.horaHasta] }
                 ]
