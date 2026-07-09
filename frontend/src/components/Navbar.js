@@ -20,7 +20,10 @@ export function Navbar() {
     router.push("/login");
   }
 
-  const links = [{ href: "/", label: "Inicio" }, { href: "/buscar", label: "Buscar turnos" }];
+  const links = [{ href: "/", label: "Inicio" }];
+  if (!esMedico) {
+    links.push({ href: "/buscar", label: "Buscar turnos" });
+  }
   if (esPaciente) {
     links.push({ href: "/mis-turnos", label: "Mis turnos" });
     links.push({ href: "/carrito", label: "Preselección", badge: cantidad });

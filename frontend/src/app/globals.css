@@ -227,7 +227,7 @@ h3 {
   display: flex;
   gap: 2px;
   align-items: center;
-  margin-left: auto;
+  flex: 1;
   flex-wrap: wrap;
 }
 
