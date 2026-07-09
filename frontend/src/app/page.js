@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Search, Wallet, ShoppingCart, Bell, CalendarClock } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
 
 export default function HomePage() {
@@ -11,7 +12,10 @@ export default function HomePage() {
   return (
     <div className="container page">
       <section className="hero">
-        <span className="hero__eyebrow">Turnos médicos online</span>
+        <span className="hero__eyebrow">
+          <CalendarClock size={14} aria-hidden="true" />
+          Turnos médicos online
+        </span>
         <h1>Reservá tu turno médico en pocos clics</h1>
         <p>
           Buscá profesionales por especialidad, práctica o sede y conocé al
@@ -28,16 +32,16 @@ export default function HomePage() {
       </section>
 
       <section className="feature-grid" aria-label="Beneficios">
-        <Feature ico="🔎" titulo="Búsqueda clara">
+        <Feature ico={<Search size={22} />} titulo="Búsqueda clara">
           Filtrá por profesional, especialidad, práctica, sede y fechas.
         </Feature>
-        <Feature ico="💳" titulo="Costo transparente">
+        <Feature ico={<Wallet size={22} />} titulo="Costo transparente">
           Cada turno muestra si está cubierto y el monto exacto a abonar.
         </Feature>
-        <Feature ico="🛒" titulo="Preseleccioná">
+        <Feature ico={<ShoppingCart size={22} />} titulo="Preseleccioná">
           Armá una preselección de turnos y revisala antes de reservar.
         </Feature>
-        <Feature ico="🔔" titulo="Notificaciones">
+        <Feature ico={<Bell size={22} />} titulo="Notificaciones">
           Enterate de confirmaciones, cancelaciones y recordatorios.
         </Feature>
       </section>

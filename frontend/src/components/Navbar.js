@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import { Plus, Stethoscope, User, Menu } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
 import { useCarrito } from "@/context/CarritoContext";
 
@@ -35,7 +36,9 @@ export function Navbar() {
     <header className="navbar">
       <div className="container navbar__inner">
         <Link href="/" className="brand" onClick={() => setAbierto(false)}>
-          <span className="brand__dot" aria-hidden="true">✚</span>
+          <span className="brand__dot" aria-hidden="true">
+            <Plus size={18} strokeWidth={2.5} />
+          </span>
           Sweet Medical
         </Link>
 
@@ -45,7 +48,7 @@ export function Navbar() {
           aria-expanded={abierto}
           onClick={() => setAbierto((v) => !v)}
         >
-          ☰
+          <Menu size={20} />
         </button>
 
         <nav
@@ -74,7 +77,11 @@ export function Navbar() {
           {usuario ? (
             <div className="nav-user">
               <span className="nav-user__chip" title={usuario.nombre}>
-                <span aria-hidden="true">{esMedico ? "🩺" : "👤"}</span>
+                {esMedico ? (
+                  <Stethoscope size={15} aria-hidden="true" />
+                ) : (
+                  <User size={15} aria-hidden="true" />
+                )}
                 {primerNombre(usuario.nombre)}
               </span>
               <button type="button" className="btn btn--ghost btn--sm" onClick={salir}>

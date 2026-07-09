@@ -13,6 +13,7 @@ import {
 } from "@/lib/api";
 import { EmptyState, Spinner } from "@/components/Estados";
 import { Modal } from "@/components/Modal";
+import { HoraArco } from "@/components/ArcoDelDia";
 import {
   formatearFechaHora,
   formatearMoneda,
@@ -143,10 +144,13 @@ export default function MisTurnosPage() {
                   <div className="turno-card__sub">
                     {t.medico?.nombre} · {t.sede?.nombre || "Sede a confirmar"}
                   </div>
-                  <div className="mt-8">{formatearFechaHora(t.fechaHora)}</div>
+                  <div className="mt-8">
+                    <HoraArco fecha={t.fechaHora} conFecha />
+                  </div>
                   {t.fechaPropuesta && (
                     <div className="muted mt-8" style={{ fontSize: "0.88rem" }}>
-                      Nueva fecha propuesta: {formatearFechaHora(t.fechaPropuesta)}
+                      Nueva fecha propuesta:{" "}
+                      <span className="data">{formatearFechaHora(t.fechaPropuesta)}</span>
                     </div>
                   )}
                 </div>

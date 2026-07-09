@@ -1,16 +1,13 @@
 "use client";
 
-import {
-  formatearMoneda,
-  formatearFecha,
-  formatearHora,
-  infoCobertura,
-} from "@/lib/format";
+import { MapPin } from "lucide-react";
+import { formatearMoneda, infoCobertura } from "@/lib/format";
+import { HoraArco } from "@/components/ArcoDelDia";
 
 /**
  * Tarjeta de un turno disponible en la búsqueda. Muestra profesional, servicio,
  * fecha/hora/sede, estado, nivel de cobertura y el monto a abonar según el plan.
- * Las acciones (agregar a preselección / reservar) se pasan por prop.
+ * El horario usa la firma "Arco del día".
  */
 export function TurnoCard({ turno, acciones }) {
   const cot = turno.cotizacion || {};
@@ -32,12 +29,9 @@ export function TurnoCard({ turno, acciones }) {
       </div>
 
       <div className="turno-card__meta">
+        <HoraArco fecha={turno.fechaHora} conFecha />
         <span>
-          <span className="ico" aria-hidden="true">📅</span>
-          {formatearFecha(turno.fechaHora)} · {formatearHora(turno.fechaHora)} hs
-        </span>
-        <span>
-          <span className="ico" aria-hidden="true">📍</span>
+          <MapPin className="ico" size={15} aria-hidden="true" />
           {turno.sede?.nombre || "Sede a confirmar"}
           {turno.sede?.direccion ? ` — ${turno.sede.direccion}` : ""}
         </span>

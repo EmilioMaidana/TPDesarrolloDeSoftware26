@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Plus, User, Stethoscope, ShieldCheck, Wallet, BellRing } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
 import { useToast } from "@/context/ToastContext";
 import { login, mensajeDeError } from "@/lib/api";
 
 const DEMO = [
-  { nombreUsuario: "paciente.juan", rol: "Paciente", nombre: "Juan Domínguez", emoji: "👤" },
-  { nombreUsuario: "paciente.maria", rol: "Paciente", nombre: "María López", emoji: "👤" },
-  { nombreUsuario: "dr.gomez", rol: "Médico", nombre: "Dr. Carlos Gómez", emoji: "🩺" },
-  { nombreUsuario: "dra.perez", rol: "Médico", nombre: "Dra. Ana Pérez", emoji: "🩺" },
+  { nombreUsuario: "paciente.juan", rol: "Paciente", nombre: "Juan Domínguez" },
+  { nombreUsuario: "paciente.maria", rol: "Paciente", nombre: "María López" },
+  { nombreUsuario: "dr.gomez", rol: "Médico", nombre: "Dr. Carlos Gómez" },
+  { nombreUsuario: "dra.perez", rol: "Médico", nombre: "Dra. Ana Pérez" },
 ];
 
 export default function LoginPage() {
@@ -45,63 +46,97 @@ export default function LoginPage() {
 
   return (
     <div className="auth">
-      <div className="auth__card">
-        <div className="auth__brand">
-          <span className="brand__dot" aria-hidden="true">✚</span>
-          Sweet Medical
-        </div>
-        <h1 className="auth__title">Iniciar sesión</h1>
-        <p className="muted">Ingresá con tu usuario para reservar y gestionar tus turnos.</p>
+      <div className="auth__grid">
+        <aside className="auth__aside">
+          <div className="auth__brand">
+            <span className="brand__dot" aria-hidden="true">
+              <Plus size={18} strokeWidth={2.5} />
+            </span>
+            Sweet Medical
+          </div>
+          <p className="auth__pitch">Gestioná tus turnos médicos en un solo lugar.</p>
+          <ul className="auth__bullets">
+            <li>
+              <ShieldCheck size={18} aria-hidden="true" />
+              Cartilla según tu obra social y plan
+            </li>
+            <li>
+              <Wallet size={18} aria-hidden="true" />
+              Costo transparente antes de reservar
+            </li>
+            <li>
+              <BellRing size={18} aria-hidden="true" />
+              Recordatorios y confirmaciones
+            </li>
+          </ul>
+        </aside>
 
-        <form onSubmit={onSubmit} className="stack mt-24">
-          <div className="field">
-            <label htmlFor="usuario">Usuario</label>
-            <input
-              id="usuario"
-              className="input"
-              value={nombreUsuario}
-              onChange={(e) => setNombreUsuario(e.target.value)}
-              placeholder="paciente.juan"
-              autoComplete="username"
-            />
+        <div className="auth__card">
+          <div className="auth__card-brand">
+            <span className="brand__dot" aria-hidden="true">
+              <Plus size={16} strokeWidth={2.5} />
+            </span>
+            Sweet Medical
           </div>
-          <div className="field">
-            <label htmlFor="password">Contraseña</label>
-            <input
-              id="password"
-              type="password"
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••"
-              autoComplete="current-password"
-            />
-          </div>
-          <button className="btn btn--primary btn--block" disabled={cargando}>
-            {cargando ? "Ingresando…" : "Ingresar"}
-          </button>
-        </form>
+          <h1 className="auth__title">Iniciar sesión</h1>
+          <p className="muted">Ingresá con tu usuario para reservar y gestionar tus turnos.</p>
 
-        <div className="auth__demo">
-          <div className="auth__demo-sep">
-            <span>Usuarios de demo · contraseña <code>123</code></span>
-          </div>
-          <div className="auth__demo-grid">
-            {DEMO.map((u) => (
-              <button
-                key={u.nombreUsuario}
-                type="button"
-                className="auth__demo-btn"
-                onClick={() => ingresar(u.nombreUsuario, "123")}
-                disabled={cargando}
-              >
-                <span className="auth__demo-avatar" aria-hidden="true">{u.emoji}</span>
-                <span className="auth__demo-info">
-                  <strong>{u.nombre}</strong>
-                  <span className="muted">{u.rol} · {u.nombreUsuario}</span>
-                </span>
-              </button>
-            ))}
+          <form onSubmit={onSubmit} className="stack mt-24">
+            <div className="field">
+              <label htmlFor="usuario">Usuario</label>
+              <input
+                id="usuario"
+                className="input"
+                value={nombreUsuario}
+                onChange={(e) => setNombreUsuario(e.target.value)}
+                placeholder="paciente.juan"
+                autoComplete="username"
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="password">Contraseña</label>
+              <input
+                id="password"
+                type="password"
+                className="input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••"
+                autoComplete="current-password"
+              />
+            </div>
+            <button className="btn btn--primary btn--block" disabled={cargando}>
+              {cargando ? "Ingresando…" : "Ingresar"}
+            </button>
+          </form>
+
+          <div className="auth__demo">
+            <div className="auth__demo-sep">
+              <span>
+                Usuarios de demo · contraseña <code>123</code>
+              </span>
+            </div>
+            <div className="auth__demo-grid">
+              {DEMO.map((u) => (
+                <button
+                  key={u.nombreUsuario}
+                  type="button"
+                  className="auth__demo-btn"
+                  onClick={() => ingresar(u.nombreUsuario, "123")}
+                  disabled={cargando}
+                >
+                  <span className="auth__demo-avatar" aria-hidden="true">
+                    {u.rol === "Médico" ? <Stethoscope size={16} /> : <User size={16} />}
+                  </span>
+                  <span className="auth__demo-info">
+                    <strong>{u.nombre}</strong>
+                    <span className="muted">
+                      {u.rol} · {u.nombreUsuario}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

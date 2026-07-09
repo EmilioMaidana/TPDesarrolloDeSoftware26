@@ -21,6 +21,7 @@ import {
 } from "@/lib/api";
 import { EmptyState, Spinner } from "@/components/Estados";
 import { Modal } from "@/components/Modal";
+import { HoraArco } from "@/components/ArcoDelDia";
 import { formatearFechaHora, claseEstado } from "@/lib/format";
 
 const DIAS = ["LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO"];
@@ -254,10 +255,11 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
               {turnos.map((t) => (
                 <tr key={t._id}>
                   <td>
-                    {formatearFechaHora(t.fechaHora)}
+                    <HoraArco fecha={t.fechaHora} conFecha />
                     {t.fechaPropuesta && (
                       <div className="muted" style={{ fontSize: "0.78rem" }}>
-                        Nueva fecha propuesta: {formatearFechaHora(t.fechaPropuesta)}
+                        Nueva fecha propuesta:{" "}
+                        <span className="data">{formatearFechaHora(t.fechaPropuesta)}</span>
                       </div>
                     )}
                   </td>
