@@ -32,6 +32,8 @@ export default function MisTurnosPage() {
   const [valor, setValor] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  const [tab, setTab] = useState("TODOS");
+
   const cargar = useCallback(async () => {
     if (!usuario || !esPaciente) return;
     setCargando(true);
@@ -108,11 +110,33 @@ export default function MisTurnosPage() {
     );
   }
 
+  const turnosFiltrados = tab === "TODOS" ? turnos : turnos.filter((t) => t.estado === tab);
+
   return (
     <div className="container page">
       <div className="page__head">
         <h1>Mis turnos</h1>
         <p>Historial de turnos de {usuario.nombre}.</p>
+      </div>
+
+      <div className="row" role="tablist" aria-label="Filtro de turnos" style={{ marginBottom: 24, flexWrap: "wrap", gap: 8 }}>
+        {[
+          ["TODOS", "Todos"],
+          ["CONFIRMADO", "Confirmados"],
+          ["RESERVADO", "Reservados"],
+          ["PENDIENTE_CONFIRMACION", "Pendientes de conf."],
+          ["CANCELADO", "Cancelados"],
+        ].map(([k, label]) => (
+          <button
+            key={k}
+            role="tab"
+            aria-selected={tab === k}
+            className={`btn btn--sm ${tab === k ? "btn--primary" : "btn--ghost"}`}
+            onClick={() => setTab(k)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {cargando ? (
@@ -129,9 +153,14 @@ export default function MisTurnosPage() {
             Buscar turnos
           </Link>
         </EmptyState>
+      ) : turnosFiltrados.length === 0 ? (
+        <EmptyState
+          emoji="📋"
+          titulo="No hay turnos para este filtro"
+        />
       ) : (
         <div className="stack">
-          {turnos.map((t) => (
+          {turnosFiltrados.map((t) => (
             <div className="card" key={t._id}>
               <div className="row row--between" style={{ alignItems: "flex-start" }}>
                 <div>
