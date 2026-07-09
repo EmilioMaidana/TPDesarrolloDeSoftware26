@@ -17,6 +17,8 @@ import {
   altaServicio,
   bajaServicio,
   crearDisponibilidad,
+  actualizarDisponibilidad,
+  eliminarDisponibilidad,
   mensajeDeError,
 } from "@/lib/api";
 import { EmptyState, Spinner } from "@/components/Estados";
@@ -285,11 +287,13 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
                           Aceptar
                         </button>
                       )}
+                      {t.estado === "CONFIRMADO" && (
+                        <button className="btn btn--ghost btn--sm" onClick={() => realizar(t)}>
+                          Realizado
+                        </button>
+                      )}
                       {["RESERVADO", "CONFIRMADO"].includes(t.estado) && (
                         <>
-                          <button className="btn btn--ghost btn--sm" onClick={() => realizar(t)}>
-                            Realizado
-                          </button>
                           <button
                             className="btn btn--ghost btn--sm"
                             onClick={() => {
@@ -501,31 +505,80 @@ function Disponibilidad({ medico, recargar, exito, error }) {
     servicio: "",
     sedeIdx: medico.sedes?.length ? "0" : "",
   });
+  const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
   const lookupServicio = new Map(servicios.map((s) => [s._id, s]));
 
-  async function crear() {
+  function cargarEdicion(d) {
+    setEditandoId(d._id);
+    setForm({
+      diaSemana: d.diaSemana,
+      horaDesde: d.horaDesde,
+      horaHasta: d.horaHasta,
+      servicio: d.servicio,
+      sedeIdx: d.sede && medico.sedes ? String(medico.sedes.findIndex(s => s.nombre === d.sede.nombre)) : "",
+    });
+  }
+
+  function cancelarEdicion() {
+    setEditandoId(null);
+    setForm({
+      diaSemana: "LUNES",
+      horaDesde: "09:00",
+      horaHasta: "13:00",
+      servicio: "",
+      sedeIdx: medico.sedes?.length ? "0" : "",
+    });
+  }
+
+  async function guardar() {
     if (!form.servicio) {
       error("Elegí un servicio para la disponibilidad.");
       return;
     }
     const serv = lookupServicio.get(form.servicio);
     const sede = form.sedeIdx !== "" ? medico.sedes[Number(form.sedeIdx)] : undefined;
+    const payload = {
+      diaSemana: form.diaSemana,
+      horaDesde: form.horaDesde,
+      horaHasta: form.horaHasta,
+      servicio: form.servicio,
+      servicioTipo: serv.tipo,
+      sede: sede ? { nombre: sede.nombre, direccion: sede.direccion } : undefined,
+    };
+    
     setEnviando(true);
     try {
-      const res = await crearDisponibilidad(medico._id, {
-        diaSemana: form.diaSemana,
-        horaDesde: form.horaDesde,
-        horaHasta: form.horaHasta,
-        servicio: form.servicio,
-        servicioTipo: serv.tipo,
-        sede: sede ? { nombre: sede.nombre, direccion: sede.direccion } : undefined,
-      });
-      exito(`Disponibilidad creada. Se generaron ${res.turnosGenerados} turnos.`);
+      let res;
+      if (editandoId) {
+        res = await actualizarDisponibilidad(medico._id, editandoId, payload);
+        exito(`Disponibilidad actualizada. Se generaron ${res.turnosGenerados} turnos.`);
+      } else {
+        res = await crearDisponibilidad(medico._id, payload);
+        exito(`Disponibilidad creada. Se generaron ${res.turnosGenerados} turnos.`);
+      }
+      cancelarEdicion();
       recargar();
     } catch (e) {
-      error(mensajeDeError(e, "No se pudo crear la disponibilidad"));
+      error(mensajeDeError(e, "No se pudo guardar la disponibilidad"));
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  async function eliminar() {
+    if (!editandoId) return;
+    if (!confirm("¿Estás seguro de que querés eliminar esta disponibilidad? Se borrarán los turnos futuros disponibles.")) return;
+    
+    setEnviando(true);
+    try {
+      await eliminarDisponibilidad(medico._id, editandoId);
+      exito("Disponibilidad eliminada correctamente.");
+      cancelarEdicion();
+      recargar();
+    } catch (e) {
+      error(mensajeDeError(e, "No se pudo eliminar la disponibilidad"));
     } finally {
       setEnviando(false);
     }
@@ -540,7 +593,13 @@ function Disponibilidad({ medico, recargar, exito, error }) {
         ) : (
           <div className="stack mt-8">
             {medico.disponibilidades.map((d, i) => (
-              <div className="card" key={d._id || i} style={{ padding: 12 }}>
+              <div 
+                className="card card--clickable" 
+                key={d._id || i} 
+                style={{ padding: 12, cursor: "pointer", border: editandoId === d._id ? "2px solid var(--primary-color)" : undefined }}
+                onClick={() => cargarEdicion(d)}
+                title="Hacé clic para editar"
+              >
                 <strong>{d.diaSemana}</strong> · {d.horaDesde}–{d.horaHasta}
                 <div className="muted" style={{ fontSize: "0.85rem" }}>
                   {lookupServicio.get(d.servicio)?.nombre || d.servicioTipo}
@@ -627,9 +686,21 @@ function Disponibilidad({ medico, recargar, exito, error }) {
             </select>
           </div>
         )}
-        <button className="btn btn--primary btn--block mt-16" onClick={crear} disabled={enviando}>
-          {enviando ? "Generando turnos…" : "Guardar disponibilidad"}
-        </button>
+        <div className="row" style={{ gap: 8, marginTop: 16 }}>
+          {editandoId && (
+            <>
+              <button className="btn btn--danger" style={{ flex: 1 }} onClick={eliminar} disabled={enviando}>
+                Eliminar
+              </button>
+              <button className="btn btn--ghost" style={{ flex: 1 }} onClick={cancelarEdicion} disabled={enviando}>
+                Cancelar
+              </button>
+            </>
+          )}
+          <button className="btn btn--primary" style={{ flex: editandoId ? 1 : '1 1 100%' }} onClick={guardar} disabled={enviando}>
+            {enviando ? "Guardando…" : (editandoId ? "Actualizar" : "Guardar")}
+          </button>
+        </div>
       </div>
     </div>
   );

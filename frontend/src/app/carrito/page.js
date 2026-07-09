@@ -38,16 +38,25 @@ export default function CarritoPage() {
     setReservando(true);
     let ok = 0;
     const fallidos = [];
+    const exitosos = [];
+
     // Reservamos uno por uno para poder informar cuáles fallaron.
     for (const turno of items) {
       try {
         await reservarTurno(turno._id, usuario.id);
-        quitar(turno._id);
+        exitosos.push(turno._id);
         ok++;
       } catch (e) {
         fallidos.push(turno);
       }
     }
+
+    if (fallidos.length === 0) {
+      vaciar();
+    } else {
+      exitosos.forEach(id => quitar(id));
+    }
+
     setReservando(false);
     if (ok > 0) exito(`Se reservaron ${ok} turno(s) de tu preselección.`);
     if (fallidos.length > 0)

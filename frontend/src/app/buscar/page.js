@@ -35,8 +35,7 @@ export default function BuscarPage() {
 
   const [form, setForm] = useState(FILTROS_INICIALES);
   const [aplicados, setAplicados] = useState(FILTROS_INICIALES);
-  const [sortBy, setSortBy] = useState("fechaHora");
-  const [order, setOrder] = useState("asc");
+  const [sorts, setSorts] = useState([{ field: "fechaHora", order: "asc" }]);
   const [page, setPage] = useState(1);
 
   const [medicos, setMedicos] = useState([]);
@@ -77,8 +76,8 @@ export default function BuscarPage() {
         ...aplicados,
         page,
         limit: LIMIT,
-        sortBy,
-        order,
+        sortBy: sorts.map(s => s.field).join(","),
+        order: sorts.map(s => s.order).join(","),
       });
       setResultado(data);
     } catch (e) {
@@ -87,7 +86,7 @@ export default function BuscarPage() {
     } finally {
       setCargando(false);
     }
-  }, [usuario, esPaciente, aplicados, page, sortBy, order, error]);
+  }, [usuario, esPaciente, aplicados, page, sorts, error]);
 
   useEffect(() => {
     buscar();
@@ -110,12 +109,29 @@ export default function BuscarPage() {
   }
 
   function cambiarOrden(campo) {
-    if (sortBy === campo) {
-      setOrder((o) => (o === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(campo);
-      setOrder("asc");
-    }
+    setSorts((prev) => {
+      const idx = prev.findIndex(s => s.field === campo);
+      if (idx >= 0) {
+        const current = prev[idx];
+        if (current.order === "asc") {
+          const newSorts = [...prev];
+          newSorts.splice(idx, 1);
+          newSorts.unshift({ field: campo, order: "desc" });
+          return newSorts;
+        } else {
+          if (prev.length === 1) {
+            const newSorts = [...prev];
+            newSorts[0] = { ...current, order: "asc" };
+            return newSorts;
+          }
+          const newSorts = [...prev];
+          newSorts.splice(idx, 1);
+          return newSorts;
+        }
+      } else {
+        return [{ field: campo, order: "asc" }, ...prev];
+      }
+    });
     setPage(1);
   }
 
@@ -215,10 +231,18 @@ export default function BuscarPage() {
 
             <div className="orden" role="group" aria-label="Ordenar resultados">
               <span className="orden__label">Ordená</span>
-              <SortChip activo={sortBy === "fechaHora"} order={order} onClick={() => cambiarOrden("fechaHora")}>
+              <SortChip 
+                activo={sorts.some(s => s.field === "fechaHora")} 
+                order={sorts.find(s => s.field === "fechaHora")?.order} 
+                onClick={() => cambiarOrden("fechaHora")}
+              >
                 Fecha
               </SortChip>
-              <SortChip activo={sortBy === "costo"} order={order} onClick={() => cambiarOrden("costo")}>
+              <SortChip 
+                activo={sorts.some(s => s.field === "costo")} 
+                order={sorts.find(s => s.field === "costo")?.order} 
+                onClick={() => cambiarOrden("costo")}
+              >
                 Costo
               </SortChip>
             </div>

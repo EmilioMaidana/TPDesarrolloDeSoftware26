@@ -150,6 +150,21 @@ export async function crearDisponibilidad(medicoId, disponibilidad) {
   return data;
 }
 
+export async function actualizarDisponibilidad(medicoId, dispId, disponibilidad) {
+  const { data } = await api.patch(
+    `/medicos/${medicoId}/disponibilidad/${dispId}`,
+    disponibilidad
+  );
+  return data;
+}
+
+export async function eliminarDisponibilidad(medicoId, dispId) {
+  const { data } = await api.delete(
+    `/medicos/${medicoId}/disponibilidad/${dispId}`
+  );
+  return data;
+}
+
 export async function getServiciosDeMedico(medicoId) {
   const { data } = await api.get(`/medicos/${medicoId}/servicios`);
   return data;

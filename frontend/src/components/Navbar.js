@@ -58,6 +58,8 @@ export function Navbar() {
           className={`navlinks ${abierto ? "navlinks--open" : ""}`}
           aria-label="Navegación principal"
         >
+          <span className="nav-spacer" />
+
           {links.map((l) => {
             const activo =
               l.href === "/" ? pathname === "/" : pathname.startsWith(l.href);
@@ -74,8 +76,6 @@ export function Navbar() {
               </Link>
             );
           })}
-
-          <span className="nav-spacer" />
 
           {usuario ? (
             <div className="nav-user">
