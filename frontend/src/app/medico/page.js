@@ -138,7 +138,10 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
   const cargar = useCallback(async () => {
     setCargando(true);
     try {
-      const data = await getAgendaMedico(medicoId, estado || undefined);
+      let data = await getAgendaMedico(medicoId, estado || undefined);
+      if (!estado) {
+        data = data.filter((t) => !["DISPONIBLE", "REALIZADO", "CANCELADO"].includes(t.estado));
+      }
       setTurnos(data);
     } catch (e) {
       error(mensajeDeError(e, "No se pudo cargar la agenda"));
@@ -272,7 +275,7 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
                     <span className={claseEstado(t.estado)}>{t.estado}</span>
                   </td>
                   <td className="text-right">
-                    <div className="row" style={{ justifyContent: "flex-end", flexWrap: "wrap", gap: 4 }}>
+                    <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap", gap: 4 }}>
                       {t.estado === "RESERVADO" && (
                         <button className="btn btn--primary btn--sm" onClick={() => aceptar(t)}>
                           Aceptar

@@ -395,7 +395,7 @@ function FiltrosContenido({ scope, form, setForm, medicos, especialidades, pract
 
       <div className="filtro-grupo">
         <span className="filtro-grupo__label">Rango de fechas</span>
-        <div className="row" style={{ gap: 10, flexWrap: "nowrap" }}>
+        <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
           <div className="field" style={{ flex: 1 }}>
             <label htmlFor={`${scope}-desde`}>Desde</label>
             <input

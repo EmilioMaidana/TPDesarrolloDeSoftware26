@@ -30,6 +30,12 @@ export const metadata = {
     "Plataforma de gestión de turnos médicos. Buscá profesionales según tu cobertura y reservá en pocos clics.",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({ children }) {
   return (
     <html lang="es" className={`${serif.variable} ${sans.variable} ${mono.variable}`}>

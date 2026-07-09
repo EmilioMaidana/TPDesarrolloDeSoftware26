@@ -227,7 +227,7 @@ h3 {
   display: flex;
   gap: 2px;
   align-items: center;
-  margin-left: 10px;
+  margin-left: auto;
   flex-wrap: wrap;
 }
 
@@ -664,7 +664,7 @@ textarea.input {
 /* ---------- Panel de búsqueda ---------- */
 .buscar-layout {
   display: grid;
-  grid-template-columns: 264px 1fr;
+  grid-template-columns: 290px 1fr;
   gap: 24px;
   align-items: start;
 }
@@ -678,8 +678,6 @@ textarea.input {
   border-radius: var(--radius);
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 108px);
-  overflow: hidden;
 }
 
 .filtros-panel__scroll {
@@ -689,6 +687,7 @@ textarea.input {
 
 .filtros-footer {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 14px 18px;
   border-top: 1px solid var(--border);
