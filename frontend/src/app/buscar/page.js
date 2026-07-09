@@ -48,7 +48,6 @@ export default function BuscarPage() {
   const [cargando, setCargando] = useState(false);
   const [reservandoId, setReservandoId] = useState(null);
   const [sheetAbierto, setSheetAbierto] = useState(false);
-  const [conteo, setConteo] = useState(null);
 
   // Carga de catálogos para los filtros.
   useEffect(() => {
@@ -94,29 +93,20 @@ export default function BuscarPage() {
     buscar();
   }, [buscar]);
 
-  // Conteo en vivo del botón "Aplicar filtros (N)": consulta el total con los
-  // filtros del formulario (aún no aplicados), con debounce y limit=1.
+  // Sincronizar filtros automáticamente con debounce
   useEffect(() => {
     if (!usuario || !esPaciente) return;
-    let cancelado = false;
-    const t = setTimeout(async () => {
-      try {
-        const data = await buscarTurnos(usuario.id, { ...form, page: 1, limit: 1 });
-        if (!cancelado) setConteo(data.paginacion.total);
-      } catch {
-        if (!cancelado) setConteo(null);
-      }
+    const t = setTimeout(() => {
+      setAplicados(form);
+      setPage(1);
     }, 350);
-    return () => {
-      cancelado = true;
-      clearTimeout(t);
-    };
+    return () => clearTimeout(t);
   }, [form, usuario, esPaciente]);
 
-  function aplicar() {
+  function limpiar() {
+    setForm(FILTROS_INICIALES);
+    setAplicados(FILTROS_INICIALES);
     setPage(1);
-    setAplicados(form);
-    setSheetAbierto(false);
   }
 
   function cambiarOrden(campo) {
@@ -129,17 +119,9 @@ export default function BuscarPage() {
     setPage(1);
   }
 
-  function limpiar() {
-    setForm(FILTROS_INICIALES);
-    setAplicados(FILTROS_INICIALES);
-    setPage(1);
-  }
-
   function quitarFiltro(key) {
-    const nuevo = { ...aplicados, [key]: "" };
+    const nuevo = { ...form, [key]: "" };
     setForm(nuevo);
-    setAplicados(nuevo);
-    setPage(1);
   }
 
   async function onReservar(turno) {
@@ -215,7 +197,7 @@ export default function BuscarPage() {
           <div className="filtros-panel__scroll">
             <FiltrosContenido scope="d" {...filtrosProps} />
           </div>
-          <FiltrosFooter onLimpiar={limpiar} onAplicar={aplicar} conteo={conteo} />
+          <FiltrosFooter onLimpiar={limpiar} />
         </aside>
 
         {/* Resultados */}
@@ -343,8 +325,6 @@ export default function BuscarPage() {
         <FiltrosSheet
           onClose={() => setSheetAbierto(false)}
           onLimpiar={limpiar}
-          onAplicar={aplicar}
-          conteo={conteo}
         >
           <FiltrosContenido scope="m" {...filtrosProps} />
         </FiltrosSheet>
@@ -446,20 +426,17 @@ function ChipGroup({ label, value, opciones, onSelect }) {
   );
 }
 
-function FiltrosFooter({ onLimpiar, onAplicar, conteo }) {
+function FiltrosFooter({ onLimpiar }) {
   return (
     <div className="filtros-footer">
       <button type="button" className="btn btn--ghost" onClick={onLimpiar}>
-        Limpiar
-      </button>
-      <button type="button" className="btn btn--primary" onClick={onAplicar}>
-        Aplicar filtros{conteo != null ? ` (${conteo})` : ""}
+        Limpiar filtros
       </button>
     </div>
   );
 }
 
-function FiltrosSheet({ onClose, onLimpiar, onAplicar, conteo, children }) {
+function FiltrosSheet({ onClose, onLimpiar, children }) {
   useEffect(() => {
     function onKey(e) {
       if (e.key === "Escape") onClose();
@@ -484,7 +461,7 @@ function FiltrosSheet({ onClose, onLimpiar, onAplicar, conteo, children }) {
           </button>
         </div>
         <div className="sheet__body">{children}</div>
-        <FiltrosFooter onLimpiar={onLimpiar} onAplicar={onAplicar} conteo={conteo} />
+        <FiltrosFooter onLimpiar={onLimpiar} />
       </div>
     </div>
   );

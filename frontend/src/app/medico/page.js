@@ -243,8 +243,8 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
       ) : turnos.length === 0 ? (
         <EmptyState emoji="📋" titulo="No hay turnos para este filtro" />
       ) : (
-        <div className="table-wrap card" style={{ padding: 0 }}>
-          <table className="table">
+        <div className="table-wrap card" style={{ padding: 0, border: "none", background: "transparent" }}>
+          <table className="table table-responsive">
             <thead>
               <tr>
                 <th>Fecha y hora</th>
@@ -257,24 +257,28 @@ function Agenda({ medicoId, usuarioId, exito, error }) {
             <tbody>
               {turnos.map((t) => (
                 <tr key={t._id}>
-                  <td>
-                    <HoraArco fecha={t.fechaHora} conFecha />
-                    {t.fechaPropuesta && (
-                      <div className="muted" style={{ fontSize: "0.78rem" }}>
-                        Nueva fecha propuesta:{" "}
-                        <span className="data">{formatearFechaHora(t.fechaPropuesta)}</span>
-                      </div>
-                    )}
+                  <td data-label="Fecha y hora">
+                    <div style={{ textAlign: "right" }}>
+                      <HoraArco fecha={t.fechaHora} conFecha />
+                      {t.fechaPropuesta && (
+                        <div className="muted" style={{ fontSize: "0.78rem" }}>
+                          Nueva fecha propuesta:{" "}
+                          <span className="data">{formatearFechaHora(t.fechaPropuesta)}</span>
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td>
-                    {t.servicio?.nombre}
-                    <div className="muted" style={{ fontSize: "0.78rem" }}>{t.servicioTipo}</div>
+                  <td data-label="Servicio">
+                    <div style={{ textAlign: "right" }}>
+                      {t.servicio?.nombre}
+                      <div className="muted" style={{ fontSize: "0.78rem" }}>{t.servicioTipo}</div>
+                    </div>
                   </td>
-                  <td>{t.paciente?.nombre || "—"}</td>
-                  <td>
+                  <td data-label="Paciente">{t.paciente?.nombre || "—"}</td>
+                  <td data-label="Estado">
                     <span className={claseEstado(t.estado)}>{t.estado}</span>
                   </td>
-                  <td className="text-right">
+                  <td data-label="Acciones" className="text-right">
                     <div className="row" style={{ justifyContent: "flex-end", flexWrap: "nowrap", gap: 4 }}>
                       {t.estado === "RESERVADO" && (
                         <button className="btn btn--primary btn--sm" onClick={() => aceptar(t)}>
@@ -412,7 +416,7 @@ function Servicios({ medico, catEsp, catPra, recargar, exito, error }) {
   }
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
+    <div className="panel-grid">
       <div className="panel">
         <h3>Mis servicios</h3>
         <ListaServicios titulo="Especialidades" items={medico.especialidades} tipo="Especialidad" onBaja={baja} />
@@ -528,7 +532,7 @@ function Disponibilidad({ medico, recargar, exito, error }) {
   }
 
   return (
-    <div className="grid" style={{ gridTemplateColumns: "1fr 1fr", alignItems: "start" }}>
+    <div className="panel-grid">
       <div className="panel">
         <h3>Disponibilidad actual</h3>
         {(!medico.disponibilidades || medico.disponibilidades.length === 0) ? (
