@@ -84,12 +84,12 @@ export default function CarritoPage() {
           </Link>
         </EmptyState>
       ) : (
-        <div 
-          className="grid" 
-          style={{ 
-            gridTemplateColumns: "2fr 1fr", 
-            alignItems: "start", 
-            gap: "3rem" 
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns: "2fr 1fr",
+            alignItems: "start",
+            gap: "3rem"
           }}
         >
           <div className="grid grid--cards">
@@ -109,7 +109,7 @@ export default function CarritoPage() {
             ))}
           </div>
 
-          <aside 
+          <aside
             aria-label="Resumen de la preselección"
             style={{
               position: "sticky",
@@ -118,14 +118,14 @@ export default function CarritoPage() {
               borderRadius: "var(--radius, 20px)",
               background: "linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%)",
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
-              border: "1px solid var(--border)",
+              border: "1px solid rgba(255, 255, 255, 0.6)",
               display: "flex",
               flexDirection: "column",
               backdropFilter: "blur(10px)"
             }}
           >
-            <h3 style={{ 
-              marginBottom: "1.5rem", 
+            <h3 style={{
+              marginBottom: "1.5rem",
               paddingBottom: "1rem",
               borderBottom: "1px solid var(--border)",
               color: "var(--text)",
@@ -137,17 +137,17 @@ export default function CarritoPage() {
             }}>
               <span style={{ color: "var(--primary)" }}>📑</span> Resumen de Reserva
             </h3>
-            
+
             <div className="row row--between" style={{ fontSize: "1rem", color: "var(--text-2)" }}>
               <span>Turnos preseleccionados</span>
               <strong style={{ color: "var(--text)" }}>{items.length}</strong>
             </div>
-            
-            <div 
-              style={{ 
-                marginTop: "1.5rem", 
-                padding: "1.25rem", 
-                borderRadius: "var(--radius-sm, 12px)", 
+
+            <div
+              style={{
+                marginTop: "1.5rem",
+                padding: "1.25rem",
+                borderRadius: "var(--radius-sm, 12px)",
                 backgroundColor: "var(--surface)",
                 boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)",
                 border: "1px solid var(--border-strong)"
@@ -155,9 +155,9 @@ export default function CarritoPage() {
             >
               <div className="row row--between" style={{ alignItems: "center" }}>
                 <span style={{ color: "var(--text-2)", fontWeight: "500" }}>Total a abonar</span>
-                <strong 
-                  style={{ 
-                    fontSize: "1.75rem", 
+                <strong
+                  style={{
+                    fontSize: "1.75rem",
                     color: "var(--primary)",
                     fontWeight: "800",
                     lineHeight: "1"
@@ -178,17 +178,17 @@ export default function CarritoPage() {
             <button
               onClick={reservarTodo}
               disabled={reservando}
-              style={{ 
+              style={{
                 marginTop: "2.5rem",
-                padding: "1.1rem", 
-                fontSize: "1.05rem", 
+                padding: "1.1rem",
+                fontSize: "1.05rem",
                 fontWeight: "600",
                 borderRadius: "var(--radius-sm, 12px)",
                 backgroundColor: "var(--primary)",
                 color: "var(--bg)",
                 border: "none",
                 cursor: reservando ? "not-allowed" : "pointer",
-                boxShadow: "0 8px 20px rgba(63, 169, 166, 0.2)",
+                boxShadow: "0 8px 20px rgba(12, 243, 235, 0.2)",
                 transition: "all 0.2s ease",
                 opacity: reservando ? 0.7 : 1
               }}
