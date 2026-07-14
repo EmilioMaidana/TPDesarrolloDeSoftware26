@@ -115,10 +115,10 @@ export default function CarritoPage() {
               position: "sticky",
               top: "2rem",
               padding: "2rem",
-              borderRadius: "20px",
-              background: "linear-gradient(145deg, #ffffff 0%, #f4f7fe 100%)",
-              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.05)",
-              border: "1px solid rgba(255, 255, 255, 0.8)",
+              borderRadius: "var(--radius, 20px)",
+              background: "linear-gradient(145deg, var(--surface-2) 0%, var(--surface) 100%)",
+              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.5)",
+              border: "1px solid var(--border)",
               display: "flex",
               flexDirection: "column",
               backdropFilter: "blur(10px)"
@@ -127,38 +127,38 @@ export default function CarritoPage() {
             <h3 style={{ 
               marginBottom: "1.5rem", 
               paddingBottom: "1rem",
-              borderBottom: "1px solid rgba(0,0,0,0.05)",
-              color: "var(--text-color, #1a202c)",
+              borderBottom: "1px solid var(--border)",
+              color: "var(--text)",
               fontWeight: "700",
               fontSize: "1.25rem",
               display: "flex",
               alignItems: "center",
               gap: "0.5rem"
             }}>
-              <span>📑</span> Resumen de Reserva
+              <span style={{ color: "var(--primary)" }}>📑</span> Resumen de Reserva
             </h3>
             
-            <div className="row row--between" style={{ fontSize: "1rem", color: "#4a5568" }}>
+            <div className="row row--between" style={{ fontSize: "1rem", color: "var(--text-2)" }}>
               <span>Turnos preseleccionados</span>
-              <strong style={{ color: "#2d3748" }}>{items.length}</strong>
+              <strong style={{ color: "var(--text)" }}>{items.length}</strong>
             </div>
             
             <div 
               style={{ 
                 marginTop: "1.5rem", 
                 padding: "1.25rem", 
-                borderRadius: "12px", 
-                backgroundColor: "#ffffff",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.02)",
-                border: "1px solid rgba(0,0,0,0.03)"
+                borderRadius: "var(--radius-sm, 12px)", 
+                backgroundColor: "var(--surface)",
+                boxShadow: "inset 0 2px 4px rgba(0,0,0,0.1)",
+                border: "1px solid var(--border-strong)"
               }}
             >
               <div className="row row--between" style={{ alignItems: "center" }}>
-                <span style={{ color: "#718096", fontWeight: "500" }}>Total a abonar</span>
+                <span style={{ color: "var(--text-2)", fontWeight: "500" }}>Total a abonar</span>
                 <strong 
                   style={{ 
                     fontSize: "1.75rem", 
-                    color: "var(--primary-color, #0070f3)",
+                    color: "var(--primary)",
                     fontWeight: "800",
                     lineHeight: "1"
                   }}
@@ -168,8 +168,8 @@ export default function CarritoPage() {
               </div>
             </div>
 
-            <div style={{ marginTop: "1.5rem", padding: "1rem", backgroundColor: "rgba(0, 112, 243, 0.05)", borderRadius: "8px", borderLeft: "3px solid var(--primary-color, #0070f3)" }}>
-              <p style={{ fontSize: "0.85rem", color: "#4a5568", margin: 0, lineHeight: "1.6" }}>
+            <div style={{ marginTop: "1.5rem", padding: "1rem", backgroundColor: "var(--primary-weak)", borderRadius: "var(--radius-sm, 8px)", borderLeft: "3px solid var(--primary)" }}>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-2)", margin: 0, lineHeight: "1.6" }}>
                 El monto considera tu cobertura. Al reservar, cada turno queda
                 pendiente de confirmación del profesional.
               </p>
@@ -183,12 +183,12 @@ export default function CarritoPage() {
                 padding: "1.1rem", 
                 fontSize: "1.05rem", 
                 fontWeight: "600",
-                borderRadius: "12px",
-                backgroundColor: "var(--primary-color, #0070f3)",
-                color: "#ffffff",
+                borderRadius: "var(--radius-sm, 12px)",
+                backgroundColor: "var(--primary)",
+                color: "var(--bg)",
                 border: "none",
                 cursor: reservando ? "not-allowed" : "pointer",
-                boxShadow: "0 8px 20px rgba(0, 112, 243, 0.3)",
+                boxShadow: "0 8px 20px rgba(63, 169, 166, 0.2)",
                 transition: "all 0.2s ease",
                 opacity: reservando ? 0.7 : 1
               }}
@@ -204,14 +204,14 @@ export default function CarritoPage() {
                 marginTop: "1rem",
                 padding: "0.8rem",
                 backgroundColor: "transparent",
-                color: "#a0aec0",
+                color: "var(--text-3)",
                 border: "none",
                 fontWeight: "500",
                 cursor: reservando ? "not-allowed" : "pointer",
                 transition: "color 0.2s ease"
               }}
-              onMouseOver={(e) => { if (!reservando) e.currentTarget.style.color = "#e53e3e"; }}
-              onMouseOut={(e) => { if (!reservando) e.currentTarget.style.color = "#a0aec0"; }}
+              onMouseOver={(e) => { if (!reservando) e.currentTarget.style.color = "var(--danger)"; }}
+              onMouseOut={(e) => { if (!reservando) e.currentTarget.style.color = "var(--text-3)"; }}
             >
               Vaciar preselección
             </button>
