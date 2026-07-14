@@ -6,6 +6,21 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 // Así los GET quedan como "simple requests" y evitamos preflights CORS innecesarios.
 export const api = axios.create({ baseURL });
 
+// Interceptor para inyectar el JWT en todas las peticiones
+api.interceptors.request.use((config) => {
+  // Asegurarse de ejecutar solo en el navegador (Next.js usa SSR)
+  if (typeof window !== "undefined") {
+    try {
+      const token = localStorage.getItem("sm_token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignorar
+    }
+  }
+  return config;
+});
 // Extrae un mensaje de error legible de cualquier respuesta del backend.
 export function mensajeDeError(error, fallback = "Ocurrió un error inesperado") {
   if (error?.response?.data?.message) return error.response.data.message;

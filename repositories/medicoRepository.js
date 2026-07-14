@@ -78,6 +78,14 @@ export class MedicoRepository {
         );
     }
 
+    async quitarDisponibilidadPorId(medicoId, disponibilidadId) {
+        return await MedicoModel.findOneAndUpdate(
+            { _id: medicoId, eliminado: false },
+            { $pull: { disponibilidades: { _id: disponibilidadId } } },
+            { new: true }
+        );
+    }
+
     async agregarServicio(medicoId, tipo, servicioId) {
         const campo = tipo === 'Especialidad' ? 'especialidades' : 'practicas';
         return await MedicoModel.findByIdAndUpdate(

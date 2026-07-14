@@ -30,7 +30,7 @@ export class TurnoRepository {
 
 
     // Búsqueda de turnos disponibles con filtros, paginación y ordenamiento
-    async buscarDisponibles({ medicoId, especialidadId, practicaId, sede, fechaInicio, fechaFin } = {}, page = 1, limit = 10, sortBy = 'fechaHora', order = 'asc') {
+    async buscarDisponibles({ medicoId, especialidadId, practicaId, sede, fechaInicio, fechaFin } = {}, page = 1, limit = 10, sortBy = ['fechaHora'], order = ['asc']) {
         const filtro = {
             estado: EstadoTurno.DISPONIBLE,
             eliminado: false
@@ -52,9 +52,12 @@ export class TurnoRepository {
             if (fechaFin) filtro.fechaHora.$lte = new Date(fechaFin);
         }
 
-        const sortOrder = order === 'desc' ? -1 : 1;
         const sortObj = {};
-        sortObj[sortBy] = sortOrder;
+        for (let i = 0; i < sortBy.length; i++) {
+            const field = sortBy[i];
+            const direction = (order[i] && order[i] === 'desc') ? -1 : 1;
+            sortObj[field] = direction;
+        }
 
         const skip = (page - 1) * limit;
 

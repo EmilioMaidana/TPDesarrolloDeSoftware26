@@ -5,6 +5,7 @@ import { createMedicoRoutes } from './medicoRoutes.js';
 import { createServicioRoutes } from './servicioRoutes.js';
 import { createPacienteRoutes } from './pacienteRoutes.js';
 import { createAuthRoutes } from './authRoutes.js';
+import { verificarToken } from '../middlewares/authMiddleware.js';
 
 export function createRouter(controllers) {
     const router = express.Router();
@@ -19,13 +20,15 @@ export function createRouter(controllers) {
         authController
     } = controllers;
 
-    // Montar sub-routers
+    // Rutas públicas
     router.use('/auth', createAuthRoutes(authController));
-    router.use('/turnos', createTurnoRoutes(turnoController));
-    router.use('/notificaciones', createNotificacionRoutes(notificacionController));
-    router.use('/medicos', createMedicoRoutes(disponibilidadController, servicioController, medicoController, turnoController));
-    router.use('/servicios', createServicioRoutes(servicioController));
-    router.use('/pacientes', createPacienteRoutes(pacienteController, turnoController));
+
+    // Rutas protegidas (Requieren JWT)
+    router.use('/turnos', verificarToken, createTurnoRoutes(turnoController));
+    router.use('/notificaciones', verificarToken, createNotificacionRoutes(notificacionController));
+    router.use('/medicos', verificarToken, createMedicoRoutes(disponibilidadController, servicioController, medicoController, turnoController));
+    router.use('/servicios', verificarToken, createServicioRoutes(servicioController));
+    router.use('/pacientes', verificarToken, createPacienteRoutes(pacienteController, turnoController));
 
     /**
      * @swagger

@@ -25,13 +25,23 @@ export function SessionProvider({ children }) {
   }, []);
 
   function iniciarSesion(nuevoUsuario) {
-    setUsuario(nuevoUsuario);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(nuevoUsuario));
+    // Separamos el token del resto de los datos del perfil
+    const { token, ...datosPerfil } = nuevoUsuario;
+    
+    // Guardamos solo el perfil (sin el token) en el estado y en sm_session
+    setUsuario(datosPerfil);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(datosPerfil));
+    
+    // Guardamos el token aislado en su propia clave
+    if (token) {
+      localStorage.setItem("sm_token", token);
+    }
   }
 
   function cerrarSesion() {
     setUsuario(null);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("sm_token");
   }
 
   return (

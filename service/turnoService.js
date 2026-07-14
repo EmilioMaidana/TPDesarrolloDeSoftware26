@@ -12,7 +12,7 @@ export class TurnoService {
     }
 
     // Buscar turnos disponibles con filtros, paginación y cotización para un paciente
-    async buscarDisponibles(filtros, pacienteId, page = 1, limit = 10, sortBy = 'fechaHora', order = 'asc') {
+    async buscarDisponibles(filtros, pacienteId, page = 1, limit = 10, sortBy = ['fechaHora'], order = ['asc']) {
         // Obtener paciente con su plan para cotización
         const paciente = await this.pacienteRepository.findByIdConPlan(pacienteId);
         if (!paciente) {
@@ -25,11 +25,22 @@ export class TurnoService {
         // Cotizar cada turno según el plan del paciente
         const turnosConCotizacion = CotizadorService.cotizarMuchos(resultado.turnos, paciente.plan);
 
-        // Si se ordena por costo, reordenar después de cotizar
-        if (sortBy === 'costo') {
+        // Si se ordena por costo (ya sea como principal o secundario), reordenar después de cotizar
+        if (sortBy.includes('costo')) {
             turnosConCotizacion.sort((a, b) => {
-                const diff = a.cotizacion.costoFinal - b.cotizacion.costoFinal;
-                return order === 'desc' ? -diff : diff;
+                for (let i = 0; i < sortBy.length; i++) {
+                    const field = sortBy[i];
+                    const dir = order[i] === 'desc' ? -1 : 1;
+                    
+                    if (field === 'costo') {
+                        const diff = a.cotizacion.costoFinal - b.cotizacion.costoFinal;
+                        if (diff !== 0) return diff * dir;
+                    } else if (field === 'fechaHora') {
+                        const diff = new Date(a.fechaHora) - new Date(b.fechaHora);
+                        if (diff !== 0) return diff * dir;
+                    }
+                }
+                return 0;
             });
         }
 
@@ -104,15 +115,18 @@ export class TurnoService {
                 remitente: usuarioId,
                 mensaje: `Tu turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')} fue cancelado por el médico. Motivo: ${motivo}`
             });
-        } else if (await this.pacienteRepository.findById(usuarioId)) {
-            // Paciente cancela -> notificar al médico
-            const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
-            if (medico) {
-                await this.notificacionRepository.save({
-                    destinatario: medico.usuario,
-                    remitente: usuarioId,
-                    mensaje: `Un paciente ha cancelado su turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')}. Motivo: ${motivo}`
-                });
+        } else {
+            const paciente = await this.pacienteRepository.findById(usuarioId);
+            if (paciente) {
+                // Paciente cancela -> notificar al médico
+                const medico = turno.medico._id ? turno.medico : await this.medicoRepository.findById(turno.medico);
+                if (medico) {
+                    await this.notificacionRepository.save({
+                        destinatario: medico.usuario,
+                        remitente: usuarioId,
+                        mensaje: `El paciente ${paciente.nombre} ha cancelado su turno del ${new Date(turno.fechaHora).toLocaleString('es-AR')}. Motivo: ${motivo}`
+                    });
+                }
             }
         }
 

@@ -17,4 +17,4 @@ services:
       - key: MONGODB_URI
         sync: false
       - key: PUBLIC_URL
-        sync: false
+        value: https://sweetmedical.netlify.app/

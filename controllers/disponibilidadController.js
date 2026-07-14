@@ -83,4 +83,20 @@ export class DisponibilidadController {
             next(error);
         }
     }
+
+    // DELETE /api/medicos/:medicoId/disponibilidad/:disponibilidadId
+    async eliminarDisponibilidadPorId(req, res, next) {
+        try {
+            const resultado = await this.disponibilidadService.eliminarDisponibilidadPorId(
+                req.params.medicoId,
+                req.params.disponibilidadId
+            );
+            res.json({
+                message: 'Disponibilidad eliminada',
+                ...resultado
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }

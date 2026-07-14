@@ -65,8 +65,8 @@ export class Turno {
 
     // Marcar como realizado (solo médico)
     marcarRealizado(usuarioId) {
-        if (this.estado !== EstadoTurno.RESERVADO && this.estado !== EstadoTurno.CONFIRMADO) {
-            throw new Error('Solo se pueden marcar como realizados turnos RESERVADOS o CONFIRMADOS');
+        if (this.estado !== EstadoTurno.CONFIRMADO) {
+            throw new Error('Solo se pueden marcar como realizados turnos CONFIRMADOS');
         }
         this.estado = EstadoTurno.REALIZADO;
         this.historialEstados.push({

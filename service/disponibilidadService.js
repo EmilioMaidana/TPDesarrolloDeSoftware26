@@ -234,4 +234,41 @@ export class DisponibilidadService {
             turnosGenerados: turnosFiltrados.length
         };
     }
+
+    // Eliminar una disponibilidad especifica de un medico
+    async eliminarDisponibilidadPorId(medicoId, disponibilidadId) {
+        const medico = await this.medicoRepository.findById(medicoId);
+        if (!medico) {
+            throw new NotFoundError('Medico no encontrado');
+        }
+
+        let disponibilidadIndex = medico.disponibilidades.findIndex(
+            d => d._id && d._id.toString() === disponibilidadId.toString()
+        );
+        if (disponibilidadIndex < 0 && /^\d+$/.test(disponibilidadId.toString())) {
+            const index = parseInt(disponibilidadId, 10);
+            if (index >= 0 && index < medico.disponibilidades.length) {
+                disponibilidadIndex = index;
+            }
+        }
+
+        const disponibilidadActual = medico.disponibilidades[disponibilidadIndex];
+        if (!disponibilidadActual) {
+            throw new NotFoundError('Disponibilidad no encontrada');
+        }
+
+        // Eliminar turnos futuros DISPONIBLES generados por esta disponibilidad
+        await this.turnoRepository.eliminarDisponiblesFuturosPorDisponibilidad(medicoId, disponibilidadActual);
+
+        // Eliminar del medico
+        const medicoActualizado = await this.medicoRepository.quitarDisponibilidadPorId(
+            medicoId,
+            disponibilidadActual._id
+        );
+
+        return {
+            disponibilidades: medicoActualizado.disponibilidades,
+            eliminada: disponibilidadActual
+        };
+    }
 }

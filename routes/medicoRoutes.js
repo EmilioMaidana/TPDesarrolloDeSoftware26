@@ -170,6 +170,27 @@ export function createMedicoRoutes(disponibilidadController, servicioController,
 
     /**
      * @swagger
+     * /api/medicos/{medicoId}/disponibilidad/{disponibilidadId}:
+     *   delete:
+     *     summary: Eliminar una disponibilidad horaria especifica de un medico
+     *     tags: [Médicos]
+     *     parameters:
+     *       - in: path
+     *         name: medicoId
+     *         required: true
+     *         schema: { type: string }
+     *       - in: path
+     *         name: disponibilidadId
+     *         required: true
+     *         schema: { type: string }
+     *     responses:
+     *       200:
+     *         description: Disponibilidad eliminada y turnos futuros DISPONIBLES eliminados
+     */
+    router.delete('/:medicoId/disponibilidad/:disponibilidadId', (req, res, next) => disponibilidadController.eliminarDisponibilidadPorId(req, res, next));
+
+    /**
+     * @swagger
      * /api/medicos/{medicoId}/servicios:
      *   get:
      *     summary: Listar servicios (especialidades y practicas) de un medico

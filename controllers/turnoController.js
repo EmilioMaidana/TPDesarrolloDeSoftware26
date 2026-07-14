@@ -13,14 +13,17 @@ export class TurnoController {
                 return res.status(400).json({ message: 'El parámetro pacienteId es obligatorio' });
             }
 
+            const sortByArray = sortBy ? sortBy.split(',') : ['fechaHora'];
+            const orderArray = order ? order.split(',') : ['asc'];
+
             const filtros = { medicoId, especialidadId, practicaId, sede, fechaInicio, fechaFin };
             const resultado = await this.turnoService.buscarDisponibles(
                 filtros,
                 pacienteId,
                 parseInt(page) || 1,
                 parseInt(limit) || 10,
-                sortBy || 'fechaHora',
-                order || 'asc'
+                sortByArray,
+                orderArray
             );
 
             res.json(resultado);
