@@ -110,49 +110,108 @@ export default function CarritoPage() {
           </div>
 
           <aside 
-            className="panel" 
             aria-label="Resumen de la preselección"
             style={{
               position: "sticky",
               top: "2rem",
               padding: "2rem",
-              borderRadius: "16px",
-              backgroundColor: "var(--surface-color, #ffffff)",
-              boxShadow: "0 16px 40px rgba(0, 0, 0, 0.08)",
-              border: "1px solid rgba(0, 0, 0, 0.05)",
+              borderRadius: "20px",
+              background: "linear-gradient(145deg, #ffffff 0%, #f4f7fe 100%)",
+              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.8)",
               display: "flex",
-              flexDirection: "column"
+              flexDirection: "column",
+              backdropFilter: "blur(10px)"
             }}
           >
-            <h3 style={{ marginBottom: "1rem", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: "1rem" }}>
-              Resumen de Reserva
+            <h3 style={{ 
+              marginBottom: "1.5rem", 
+              paddingBottom: "1rem",
+              borderBottom: "1px solid rgba(0,0,0,0.05)",
+              color: "var(--text-color, #1a202c)",
+              fontWeight: "700",
+              fontSize: "1.25rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem"
+            }}>
+              <span>📑</span> Resumen de Reserva
             </h3>
-            <div className="row row--between mt-8">
-              <span className="muted">Turnos preseleccionados</span>
-              <strong>{items.length}</strong>
+            
+            <div className="row row--between" style={{ fontSize: "1rem", color: "#4a5568" }}>
+              <span>Turnos preseleccionados</span>
+              <strong style={{ color: "#2d3748" }}>{items.length}</strong>
             </div>
-            <div className="row row--between mt-8" style={{ marginTop: "1.5rem" }}>
-              <span className="muted">Total a abonar</span>
-              <strong className="precio-final" style={{ fontSize: "1.5rem", color: "var(--primary-color, #0070f3)" }}>
-                {formatearMoneda(total)}
-              </strong>
+            
+            <div 
+              style={{ 
+                marginTop: "1.5rem", 
+                padding: "1.25rem", 
+                borderRadius: "12px", 
+                backgroundColor: "#ffffff",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.02)",
+                border: "1px solid rgba(0,0,0,0.03)"
+              }}
+            >
+              <div className="row row--between" style={{ alignItems: "center" }}>
+                <span style={{ color: "#718096", fontWeight: "500" }}>Total a abonar</span>
+                <strong 
+                  style={{ 
+                    fontSize: "1.75rem", 
+                    color: "var(--primary-color, #0070f3)",
+                    fontWeight: "800",
+                    lineHeight: "1"
+                  }}
+                >
+                  {formatearMoneda(total)}
+                </strong>
+              </div>
             </div>
-            <p className="muted mt-8" style={{ fontSize: "0.85rem", marginTop: "1.5rem", lineHeight: "1.5" }}>
-              El monto considera tu cobertura. Al reservar, cada turno queda
-              pendiente de confirmación del profesional.
-            </p>
+
+            <div style={{ marginTop: "1.5rem", padding: "1rem", backgroundColor: "rgba(0, 112, 243, 0.05)", borderRadius: "8px", borderLeft: "3px solid var(--primary-color, #0070f3)" }}>
+              <p style={{ fontSize: "0.85rem", color: "#4a5568", margin: 0, lineHeight: "1.6" }}>
+                El monto considera tu cobertura. Al reservar, cada turno queda
+                pendiente de confirmación del profesional.
+              </p>
+            </div>
+
             <button
-              className="btn btn--primary btn--block mt-16"
               onClick={reservarTodo}
               disabled={reservando}
-              style={{ padding: "1rem", fontSize: "1rem", marginTop: "2rem" }}
+              style={{ 
+                marginTop: "2.5rem",
+                padding: "1.1rem", 
+                fontSize: "1.05rem", 
+                fontWeight: "600",
+                borderRadius: "12px",
+                backgroundColor: "var(--primary-color, #0070f3)",
+                color: "#ffffff",
+                border: "none",
+                cursor: reservando ? "not-allowed" : "pointer",
+                boxShadow: "0 8px 20px rgba(0, 112, 243, 0.3)",
+                transition: "all 0.2s ease",
+                opacity: reservando ? 0.7 : 1
+              }}
+              onMouseOver={(e) => { if (!reservando) e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseOut={(e) => { if (!reservando) e.currentTarget.style.transform = "translateY(0)"; }}
             >
               {reservando ? "Reservando…" : "Confirmar y Reservar"}
             </button>
             <button
-              className="btn btn--ghost btn--block mt-8"
               onClick={vaciar}
               disabled={reservando}
+              style={{
+                marginTop: "1rem",
+                padding: "0.8rem",
+                backgroundColor: "transparent",
+                color: "#a0aec0",
+                border: "none",
+                fontWeight: "500",
+                cursor: reservando ? "not-allowed" : "pointer",
+                transition: "color 0.2s ease"
+              }}
+              onMouseOver={(e) => { if (!reservando) e.currentTarget.style.color = "#e53e3e"; }}
+              onMouseOut={(e) => { if (!reservando) e.currentTarget.style.color = "#a0aec0"; }}
             >
               Vaciar preselección
             </button>
