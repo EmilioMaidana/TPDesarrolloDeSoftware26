@@ -6,9 +6,10 @@ export class MongoDBClient {
         try {
             const uri = process.env.MONGODB_URI;
             const dbName = process.env.MONGODB_DB_NAME;
-            
-            const conn = await mongoose.connect(uri, { 
-                dbName: dbName
+
+            const conn = await mongoose.connect(uri, {
+                dbName: dbName,
+                serverSelectionTimeoutMS: 3000
             });
 
             console.log(`MongoDB is connected: ${conn.connection.host}`);

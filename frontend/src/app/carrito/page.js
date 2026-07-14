@@ -84,7 +84,14 @@ export default function CarritoPage() {
           </Link>
         </EmptyState>
       ) : (
-        <div className="grid" style={{ gridTemplateColumns: "2fr 1fr", alignItems: "start" }}>
+        <div 
+          className="grid" 
+          style={{ 
+            gridTemplateColumns: "2fr 1fr", 
+            alignItems: "start", 
+            gap: "3rem" 
+          }}
+        >
           <div className="grid grid--cards">
             {items.map((turno) => (
               <TurnoCard
@@ -102,17 +109,35 @@ export default function CarritoPage() {
             ))}
           </div>
 
-          <aside className="panel" aria-label="Resumen de la preselección">
-            <h3>Resumen</h3>
+          <aside 
+            className="panel" 
+            aria-label="Resumen de la preselección"
+            style={{
+              position: "sticky",
+              top: "2rem",
+              padding: "2rem",
+              borderRadius: "16px",
+              backgroundColor: "var(--surface-color, #ffffff)",
+              boxShadow: "0 16px 40px rgba(0, 0, 0, 0.08)",
+              border: "1px solid rgba(0, 0, 0, 0.05)",
+              display: "flex",
+              flexDirection: "column"
+            }}
+          >
+            <h3 style={{ marginBottom: "1rem", borderBottom: "1px solid rgba(0,0,0,0.05)", paddingBottom: "1rem" }}>
+              Resumen de Reserva
+            </h3>
             <div className="row row--between mt-8">
-              <span className="muted">Turnos</span>
+              <span className="muted">Turnos preseleccionados</span>
               <strong>{items.length}</strong>
             </div>
-            <div className="row row--between mt-8">
+            <div className="row row--between mt-8" style={{ marginTop: "1.5rem" }}>
               <span className="muted">Total a abonar</span>
-              <strong className="precio-final">{formatearMoneda(total)}</strong>
+              <strong className="precio-final" style={{ fontSize: "1.5rem", color: "var(--primary-color, #0070f3)" }}>
+                {formatearMoneda(total)}
+              </strong>
             </div>
-            <p className="muted mt-8" style={{ fontSize: "0.82rem" }}>
+            <p className="muted mt-8" style={{ fontSize: "0.85rem", marginTop: "1.5rem", lineHeight: "1.5" }}>
               El monto considera tu cobertura. Al reservar, cada turno queda
               pendiente de confirmación del profesional.
             </p>
@@ -120,8 +145,9 @@ export default function CarritoPage() {
               className="btn btn--primary btn--block mt-16"
               onClick={reservarTodo}
               disabled={reservando}
+              style={{ padding: "1rem", fontSize: "1rem", marginTop: "2rem" }}
             >
-              {reservando ? "Reservando…" : "Reservar todos"}
+              {reservando ? "Reservando…" : "Confirmar y Reservar"}
             </button>
             <button
               className="btn btn--ghost btn--block mt-8"

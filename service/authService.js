@@ -53,7 +53,7 @@ export class AuthService {
         const token = jwt.sign(
             { id: perfil.id, usuarioId: perfil.usuarioId, tipo: perfil.tipo },
             process.env.JWT_SECRET,
-            { expiresIn: '24h' }
+            { expiresIn: '15min' }
         );
 
         return { ...perfil, token };
